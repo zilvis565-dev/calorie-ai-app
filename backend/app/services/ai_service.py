@@ -2,6 +2,8 @@ import json
 import re
 from typing import Any
 
+import requests
+
 from app.core.config import settings
 
 
@@ -101,51 +103,120 @@ def rule_based_parse(text: str):
 
     return {
         "original_text": text,
-        "message": "Rule-based parser placeholder. Parsed multiple matching food phrases when possible.",
+        "message": "Rule-based parser fallback used.",
         "provider": "rule-based",
         "items": ordered,
     }
 
 
-def build_llm_prompt(text: str) -> dict[str, Any]:
-    return {
-        "instruction": "Extract food items from the user's text and return JSON only.",
+def build_llm_prompt(text: str) -> str:
+    prompt = {
+        "task": "Extract food items from the user's meal text.",
         "rules": [
-            "Return only structured food items.",
+            "Return only valid JSON.",
+            "Use the schema exactly.",
             "Prefer explicit grams if stated.",
             "If quantity is not in grams, estimate grams conservatively.",
-            "Return items as an array.",
+            "Do not add explanations.",
         ],
         "schema": {
             "items": [
-                {"name": "string", "grams": "number", "matched_food_id": "number or null"}
+                {"name": "string", "grams": "number", "matched_food_id": None}
             ]
         },
         "input": text,
     }
+    return json.dumps(prompt, ensure_ascii=False)
+
+
+def parse_gemini_json(text: str):
+    api_key = settings.ai_api_key.strip()
+    model = settings.ai_model.strip() or 'gemini-1.5-flash'
+    if not api_key:
+        raise ValueError('Gemini API key is missing')
+
+    url = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}'
+    payload = {
+        'contents': [
+            {
+                'parts': [
+                    {'text': build_llm_prompt(text)}
+                ]
+            }
+        ],
+        'generationConfig': {
+            'temperature': 0.2,
+            'responseMimeType': 'application/json'
+        }
+    }
+
+    response = requests.post(url, json=payload, timeout=30)
+    response.raise_for_status()
+    data = response.json()
+
+    candidates = data.get('candidates', [])
+    if not candidates:
+        raise ValueError('Gemini returned no candidates')
+
+    parts = candidates[0].get('content', {}).get('parts', [])
+    if not parts:
+        raise ValueError('Gemini returned no content parts')
+
+    raw_text = ''.join(part.get('text', '') for part in parts).strip()
+    parsed = json.loads(raw_text)
+    items = parsed.get('items', [])
+
+    normalized_items = []
+    for item in items:
+        name = item.get('name')
+        grams = item.get('grams')
+        if not name or grams is None:
+            continue
+        normalized_items.append({
+            'name': str(name),
+            'grams': float(grams),
+            'matched_food_id': item.get('matched_food_id'),
+        })
+
+    return {
+        'original_text': text,
+        'message': 'Gemini parse used.',
+        'provider': 'gemini',
+        'mode': 'llm-live',
+        'items': normalized_items,
+    }
 
 
 def llm_parse(text: str):
-    prompt = build_llm_prompt(text)
     provider = settings.ai_provider.lower().strip()
+    if provider == 'gemini':
+        return parse_gemini_json(text)
 
     return {
-        "original_text": text,
-        "message": "LLM integration scaffold is ready. Set AI_PROVIDER, AI_API_KEY, AI_MODEL and implement provider request logic.",
-        "provider": provider,
-        "mode": "llm-scaffold",
-        "prompt_preview": json.dumps(prompt, ensure_ascii=False),
-        "items": [],
+        'original_text': text,
+        'message': 'LLM integration scaffold is ready. Set AI_PROVIDER, AI_API_KEY, AI_MODEL and implement provider request logic.',
+        'provider': provider,
+        'mode': 'llm-scaffold',
+        'items': [],
     }
 
 
 def parse_meal_text(text: str):
     provider = settings.ai_provider.lower().strip()
-    if provider in {"openai", "anthropic", "gemini", "custom"}:
-        llm_result = llm_parse(text)
-        fallback_result = rule_based_parse(text)
-        return {
-            **llm_result,
-            "fallback_items": fallback_result.get("items", []),
-        }
+    if provider in {'openai', 'anthropic', 'gemini', 'custom'}:
+        try:
+            llm_result = llm_parse(text)
+            fallback_result = rule_based_parse(text)
+            return {
+                **llm_result,
+                'fallback_items': fallback_result.get('items', []),
+            }
+        except Exception as exc:
+            fallback_result = rule_based_parse(text)
+            return {
+                **fallback_result,
+                'provider': provider,
+                'mode': 'fallback-after-llm-error',
+                'message': f'AI parse failed, fallback used: {exc}',
+            }
     return rule_based_parse(text)

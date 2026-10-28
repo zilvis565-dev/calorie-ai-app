@@ -18,7 +18,7 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, F
 - Daily summary with remaining calories
 - Rule-based AI parser with better multi-item phrase matching
 - Better Lithuanian quantity parsing for `liesa varske`, `graikiskas jogurtas`, `silauoges`, `riesutu sviestas`, `bananas`
-- AI provider scaffold with clearer fallback behavior for future integration
+- Live Gemini integration with fallback to rule-based parsing
 - Alembic migration setup
 - Safer auth validation for password length handling
 - Switched auth hashing to `pbkdf2_sha256` for more stable local compatibility
