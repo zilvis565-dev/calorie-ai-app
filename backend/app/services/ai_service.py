@@ -1,7 +1,10 @@
+import json
 import re
 
+from app.core.config import settings
 
-def parse_meal_text(text: str):
+
+def rule_based_parse(text: str):
     lower = text.lower()
     items = []
 
@@ -55,5 +58,32 @@ def parse_meal_text(text: str):
     return {
         "original_text": text,
         "message": "Rule-based parser placeholder. Parsed multiple matching food phrases when possible.",
+        "provider": "rule-based",
         "items": ordered,
     }
+
+
+def llm_parse(text: str):
+    prompt = {
+        "instruction": "Extract food items from the user's text and return JSON only.",
+        "schema": {
+            "items": [
+                {"name": "string", "grams": "number", "matched_food_id": "number or null"}
+            ]
+        },
+        "input": text,
+    }
+    return {
+        "original_text": text,
+        "message": "LLM integration scaffold is ready. Set AI_PROVIDER and implement provider request logic.",
+        "provider": settings.ai_provider,
+        "prompt_preview": json.dumps(prompt),
+        "items": [],
+    }
+
+
+def parse_meal_text(text: str):
+    provider = settings.ai_provider.lower().strip()
+    if provider in {"openai", "anthropic", "gemini", "custom"}:
+        return llm_parse(text)
+    return rule_based_parse(text)

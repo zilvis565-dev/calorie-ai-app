@@ -14,6 +14,7 @@ class _ParseMealPageState extends State<ParseMealPage> {
   final textController = TextEditingController();
   List<ParsedMealItem> items = [];
   String? message;
+  String? provider;
   bool loading = false;
   String mealType = 'snack';
 
@@ -25,6 +26,7 @@ class _ParseMealPageState extends State<ParseMealPage> {
     setState(() {
       loading = true;
       message = null;
+      provider = null;
     });
     final result = await apiClient.parseMealText(textController.text);
     if (result['error'] == true) {
@@ -39,6 +41,7 @@ class _ParseMealPageState extends State<ParseMealPage> {
           .map((e) => ParsedMealItem.fromJson(e as Map<String, dynamic>))
           .toList();
       message = result['message'] as String?;
+      provider = result['provider']?.toString();
       loading = false;
     });
   }
@@ -136,6 +139,10 @@ class _ParseMealPageState extends State<ParseMealPage> {
               onPressed: loading ? null : parseMeal,
               child: Text(loading ? 'Parsing...' : 'Parse with AI'),
             ),
+            if (provider != null) ...[
+              const SizedBox(height: 12),
+              Text('Provider: $provider', style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
             if (message != null) ...[
               const SizedBox(height: 12),
               Text(message!, style: TextStyle(color: message!.contains('failed') || message!.contains('Enter') ? Colors.red : Colors.black)),

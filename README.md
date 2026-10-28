@@ -13,7 +13,22 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, a
 - Weekly stats for last 7 days
 - Daily summary with remaining calories
 - Rule-based AI parser with better multi-item phrase matching
+- LLM integration scaffold with provider config
 - Alembic migration setup
+
+## AI configuration scaffold
+
+Environment variables added:
+
+- `AI_PROVIDER`
+- `AI_API_KEY`
+- `AI_MODEL`
+
+Current behavior:
+
+- `AI_PROVIDER=mock` uses the existing rule-based parser
+- setting provider to values like `openai`, `anthropic`, `gemini`, or `custom` switches backend to LLM scaffold mode
+- scaffold mode currently returns provider information and prompt preview structure so real provider wiring can be added later
 
 ## Included frontend features
 
