@@ -6,9 +6,9 @@ def parse_meal_text(text: str):
     items = []
 
     patterns = [
-        (r"(\d+)\s*egg", "Egg", 60, 1),
-        (r"(\d+)\s*banana", "Banana", 120, 2),
-        (r"(\d+)\s*apple", "Apple", 180, 7),
+        (r"(\d+)\s*egg[s]?", "Egg", 60, 1),
+        (r"(\d+)\s*banana[s]?", "Banana", 120, 2),
+        (r"(\d+)\s*apple[s]?", "Apple", 180, 7),
         (r"(\d+)\s*slice[s]?\s*bread", "Bread", 30, 6),
         (r"(\d+)\s*g\s*rice", "Rice cooked", 1, 4),
         (r"(\d+)\s*g\s*chicken", "Chicken breast", 1, 3),
@@ -25,27 +25,35 @@ def parse_meal_text(text: str):
                 "matched_food_id": food_id,
             })
 
-    if not items:
-        fallback = [
-            ("egg", "Egg", 120, 1),
-            ("banana", "Banana", 120, 2),
-            ("apple", "Apple", 180, 7),
-            ("bread", "Bread", 60, 6),
-            ("rice", "Rice cooked", 100, 4),
-            ("chicken", "Chicken breast", 150, 3),
-            ("cheese", "Cheese", 30, 5),
-            ("cottage cheese", "Cottage cheese", 150, 8),
-        ]
-        for keyword, name, grams, food_id in fallback:
-            if keyword in lower:
-                items.append({
-                    "name": name,
-                    "grams": grams,
-                    "matched_food_id": food_id,
-                })
+    fallback = [
+        ("egg", "Egg", 120, 1),
+        ("banana", "Banana", 120, 2),
+        ("apple", "Apple", 180, 7),
+        ("bread", "Bread", 60, 6),
+        ("rice", "Rice cooked", 100, 4),
+        ("chicken", "Chicken breast", 150, 3),
+        ("cheese", "Cheese", 30, 5),
+        ("cottage cheese", "Cottage cheese", 150, 8),
+    ]
+
+    for keyword, name, grams, food_id in fallback:
+        if keyword in lower and not any(item["name"] == name for item in items):
+            items.append({
+                "name": name,
+                "grams": grams,
+                "matched_food_id": food_id,
+            })
+
+    ordered = []
+    seen = set()
+    for item in items:
+        key = (item["name"], item["grams"])
+        if key not in seen:
+            seen.add(key)
+            ordered.append(item)
 
     return {
         "original_text": text,
-        "message": "Rule-based parser placeholder. Replace with LLM integration.",
-        "items": items,
+        "message": "Rule-based parser placeholder. Parsed multiple matching food phrases when possible.",
+        "items": ordered,
     }

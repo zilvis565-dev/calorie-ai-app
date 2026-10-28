@@ -15,6 +15,7 @@ class _HistoryPageState extends State<HistoryPage> {
   final toController = TextEditingController();
   List<MealLog> meals = [];
   bool loading = false;
+  String? error;
 
   @override
   void initState() {
@@ -27,12 +28,17 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Future<void> loadHistory() async {
-    setState(() => loading = true);
+    setState(() {
+      loading = true;
+      error = null;
+    });
     try {
       final data = await apiClient.getMealHistory(fromController.text, toController.text);
       setState(() {
         meals = data.map((e) => MealLog.fromJson(e as Map<String, dynamic>)).toList();
       });
+    } catch (_) {
+      setState(() => error = 'Failed to load history');
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -65,17 +71,21 @@ class _HistoryPageState extends State<HistoryPage> {
           Expanded(
             child: loading
                 ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    itemCount: meals.length,
-                    itemBuilder: (context, index) {
-                      final meal = meals[index];
-                      return ListTile(
-                        title: Text(meal.name),
-                        subtitle: Text('${meal.grams} g • ${meal.mealType ?? 'snack'}'),
-                        trailing: Text('${meal.calories} kcal'),
-                      );
-                    },
-                  ),
+                : error != null
+                    ? Center(child: Text(error!, style: const TextStyle(color: Colors.red)))
+                    : meals.isEmpty
+                        ? const Center(child: Text('No meals found for selected period'))
+                        : ListView.builder(
+                            itemCount: meals.length,
+                            itemBuilder: (context, index) {
+                              final meal = meals[index];
+                              return ListTile(
+                                title: Text(meal.name),
+                                subtitle: Text('${meal.grams} g • ${meal.mealType ?? 'snack'}'),
+                                trailing: Text('${meal.calories} kcal'),
+                              );
+                            },
+                          ),
           ),
         ],
       ),

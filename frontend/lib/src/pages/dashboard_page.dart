@@ -126,8 +126,10 @@ class _DashboardPageState extends State<DashboardPage> {
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final day = weeklyDays[index];
+          final target = day.targetCalories;
+          final progress = target != null && target > 0 ? (day.calories / target).clamp(0, 1).toDouble() : null;
           return SizedBox(
-            width: 140,
+            width: 150,
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(12),
@@ -138,15 +140,48 @@ class _DashboardPageState extends State<DashboardPage> {
                     Text(day.date, style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Text('${day.calories.toStringAsFixed(0)} kcal'),
-                    Text('P ${day.protein.toStringAsFixed(0)}'),
-                    Text('F ${day.fat.toStringAsFixed(0)}'),
-                    Text('C ${day.carbs.toStringAsFixed(0)}'),
+                    if (progress != null) ...[
+                      const SizedBox(height: 8),
+                      LinearProgressIndicator(value: progress),
+                    ],
+                    const SizedBox(height: 8),
+                    Text('P ${day.protein.toStringAsFixed(0)}  F ${day.fat.toStringAsFixed(0)}  C ${day.carbs.toStringAsFixed(0)}'),
                   ],
                 ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget buildSummaryCard() {
+    final calories = (summary?['calories'] ?? 0).toDouble();
+    final targetRaw = summary?['target_calories'];
+    final target = targetRaw is num ? targetRaw.toDouble() : null;
+    final progress = target != null && target > 0 ? (calories / target).clamp(0, 1).toDouble() : null;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Today summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Text('Calories: ${summary?['calories'] ?? 0}'),
+            Text('Protein: ${summary?['protein'] ?? 0}'),
+            Text('Fat: ${summary?['fat'] ?? 0}'),
+            Text('Carbs: ${summary?['carbs'] ?? 0}'),
+            Text('Target: ${summary?['target_calories'] ?? '-'}'),
+            Text('Remaining: ${summary?['remaining_calories'] ?? '-'}'),
+            if (progress != null) ...[
+              const SizedBox(height: 12),
+              LinearProgressIndicator(value: progress),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -189,22 +224,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Calories: ${summary?['calories'] ?? 0}'),
-                              Text('Protein: ${summary?['protein'] ?? 0}'),
-                              Text('Fat: ${summary?['fat'] ?? 0}'),
-                              Text('Carbs: ${summary?['carbs'] ?? 0}'),
-                              Text('Target: ${summary?['target_calories'] ?? '-'}'),
-                              Text('Remaining: ${summary?['remaining_calories'] ?? '-'}'),
-                            ],
-                          ),
-                        ),
-                      ),
+                      buildSummaryCard(),
                       const SizedBox(height: 16),
                       const Text('Last 7 days', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),

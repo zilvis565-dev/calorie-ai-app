@@ -12,7 +12,7 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, a
 - Meal history by date range
 - Weekly stats for last 7 days
 - Daily summary with remaining calories
-- Rule-based AI placeholder meal parser
+- Rule-based AI parser with better multi-item phrase matching
 - Alembic migration setup
 
 ## Included frontend features
@@ -21,8 +21,9 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, a
 - Login and registration
 - Dashboard with summary and today's meals
 - Weekly stats cards on dashboard
+- Progress bars for daily target and weekly cards
 - Food search and add flow
 - Profile update and logout
 - AI text meal parsing flow with edit before save
-- Meal history screen
+- Meal history screen with better empty/error states
 - Loading and basic error states
