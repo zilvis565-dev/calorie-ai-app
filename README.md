@@ -21,3 +21,4 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, a
 - Switched auth hashing to `pbkdf2_sha256` for more stable local compatibility
 - Swagger OAuth2 authorize flow aligned with login endpoint
 - Fixed meal response schema UUID typing
+- Simple mobile-friendly web UI available at `/web`

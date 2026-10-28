@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.foods import router as foods_router
@@ -13,6 +14,8 @@ with SessionLocal() as db:
     seed_food_items(db)
 
 app = FastAPI(title=settings.app_name)
+
+app.mount('/web', StaticFiles(directory='app/web', html=True), name='web')
 
 app.include_router(health_router)
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])

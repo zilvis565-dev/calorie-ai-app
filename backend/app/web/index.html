@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calorie AI App</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 16px; background: #f7f7f7; color: #222; }
+    .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    input, textarea, button, select { width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+    button { background: #2e7d32; color: white; border: none; font-weight: bold; }
+    button.secondary { background: #1565c0; }
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+    .small { color: #666; font-size: 14px; }
+    .item { padding: 8px 0; border-bottom: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Login</h2>
+    <input id="email" placeholder="Email" value="test7@test.com" />
+    <input id="password" type="password" placeholder="Password" value="123456" />
+    <button onclick="login()">Login</button>
+    <div id="loginStatus" class="small"></div>
+  </div>
+
+  <div class="card">
+    <h2>Quick Add Meal</h2>
+    <textarea id="mealText" rows="3" placeholder="Example: 2 eggs and 100g rice and 30g cheese"></textarea>
+    <select id="mealType">
+      <option value="breakfast">Breakfast</option>
+      <option value="lunch">Lunch</option>
+      <option value="dinner">Dinner</option>
+      <option value="snack">Snack</option>
+    </select>
+    <button onclick="parseAndSave()">Parse and Save</button>
+    <div id="saveStatus" class="small"></div>
+  </div>
+
+  <div class="card">
+    <h2>Today Summary</h2>
+    <button class="secondary" onclick="loadSummary()">Refresh Summary</button>
+    <div id="summary" class="small"></div>
+  </div>
+
+  <div class="card">
+    <h2>Today Meals</h2>
+    <button class="secondary" onclick="loadMeals()">Refresh Meals</button>
+    <div id="meals" class="small"></div>
+  </div>
+
+  <script>
+    const baseUrl = window.location.origin;
+    let token = localStorage.getItem('token') || '';
+
+    async function login() {
+      const body = new URLSearchParams();
+      body.append('username', document.getElementById('email').value);
+      body.append('password', document.getElementById('password').value);
+
+      const res = await fetch(`${baseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body
+      });
+      const data = await res.json();
+      if (data.access_token) {
+        token = data.access_token;
+        localStorage.setItem('token', token);
+        document.getElementById('loginStatus').innerText = 'Logged in successfully';
+        loadSummary();
+        loadMeals();
+      } else {
+        document.getElementById('loginStatus').innerText = data.detail || 'Login failed';
+      }
+    }
+
+    async function parseAndSave() {
+      const text = document.getElementById('mealText').value;
+      const mealType = document.getElementById('mealType').value;
+      const res = await fetch(`${baseUrl}/api/meals/parse-and-save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ text, meal_type: mealType })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById('saveStatus').innerText = `Saved ${data.saved.created_count} items`;
+        loadSummary();
+        loadMeals();
+      } else {
+        document.getElementById('saveStatus').innerText = data.detail || 'Save failed';
+      }
+    }
+
+    async function loadSummary() {
+      const res = await fetch(`${baseUrl}/api/meals/daily-summary`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      document.getElementById('summary').innerHTML = `Calories: ${data.calories}<br>Protein: ${data.protein}<br>Fat: ${data.fat}<br>Carbs: ${data.carbs}<br>Target: ${data.target_calories}<br>Remaining: ${data.remaining_calories}`;
+    }
+
+    async function loadMeals() {
+      const res = await fetch(`${baseUrl}/api/meals/today`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      document.getElementById('meals').innerHTML = data.map(item => `<div class="item">${item.name} - ${item.grams}g - ${item.calories} kcal - ${item.meal_type || ''}</div>`).join('');
+    }
+
+    if (token) {
+      loadSummary();
+      loadMeals();
+      document.getElementById('loginStatus').innerText = 'Using saved session';
+    }
+  </script>
+</body>
+</html>
