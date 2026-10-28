@@ -16,3 +16,4 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, a
 - LLM integration scaffold with provider config
 - Alembic migration setup
 - Safer auth validation for password length handling
+- Fixed bcrypt/passlib dependency compatibility
