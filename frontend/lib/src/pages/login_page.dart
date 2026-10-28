@@ -13,18 +13,25 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   String? error;
+  bool loading = false;
 
   Future<void> submit() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
     final result = await apiClient.login(
       emailController.text,
       passwordController.text,
     );
     if (result['access_token'] != null) {
-      apiClient.token = result['access_token'] as String;
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/dashboard');
     } else {
-      setState(() => error = 'Login failed');
+      setState(() => error = result['detail']?.toString() ?? 'Login failed');
+    }
+    if (mounted) {
+      setState(() => loading = false);
     }
   }
 
@@ -39,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
             TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
             TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password'), obscureText: true),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: submit, child: const Text('Login')),
+            ElevatedButton(onPressed: loading ? null : submit, child: Text(loading ? 'Loading...' : 'Login')),
             TextButton(
               onPressed: () => Navigator.pushNamed(context, '/register'),
               child: const Text('Create account'),

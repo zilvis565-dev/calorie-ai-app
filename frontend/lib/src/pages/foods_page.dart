@@ -11,6 +11,7 @@ class FoodsPage extends StatefulWidget {
 }
 
 class _FoodsPageState extends State<FoodsPage> {
+  final searchController = TextEditingController();
   List<FoodItem> foods = [];
 
   @override
@@ -21,6 +22,18 @@ class _FoodsPageState extends State<FoodsPage> {
 
   Future<void> loadFoods() async {
     final data = await apiClient.getFoods();
+    setState(() {
+      foods = data.map((e) => FoodItem.fromJson(e as Map<String, dynamic>)).toList();
+    });
+  }
+
+  Future<void> searchFoods() async {
+    final query = searchController.text.trim();
+    if (query.isEmpty) {
+      await loadFoods();
+      return;
+    }
+    final data = await apiClient.searchFoods(query);
     setState(() {
       foods = data.map((e) => FoodItem.fromJson(e as Map<String, dynamic>)).toList();
     });
@@ -62,19 +75,43 @@ class _FoodsPageState extends State<FoodsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Foods')),
-      body: ListView.builder(
-        itemCount: foods.length,
-        itemBuilder: (context, index) {
-          final item = foods[index];
-          return ListTile(
-            title: Text(item.name),
-            subtitle: Text('${item.caloriesPer100g} kcal / 100g'),
-            trailing: IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => addMeal(item),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: searchController,
+                    decoration: const InputDecoration(
+                      labelText: 'Search foods',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(onPressed: searchFoods, child: const Text('Search')),
+              ],
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: foods.length,
+              itemBuilder: (context, index) {
+                final item = foods[index];
+                return ListTile(
+                  title: Text(item.name),
+                  subtitle: Text('${item.caloriesPer100g} kcal / 100g'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () => addMeal(item),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -45,6 +45,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Future<void> logout() async {
+    await apiClient.clearToken();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,6 +68,8 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: saveProfile, child: const Text('Save')),
+            const SizedBox(height: 12),
+            OutlinedButton(onPressed: logout, child: const Text('Logout')),
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_config.dart';
 
@@ -15,13 +16,36 @@ class ApiClient {
     return base;
   }
 
+  Future<void> loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('auth_token');
+  }
+
+  Future<void> saveToken(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    token = value;
+    await prefs.setString('auth_token', value);
+  }
+
+  Future<void> clearToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    token = null;
+    await prefs.remove('auth_token');
+  }
+
+  bool get isLoggedIn => token != null && token!.isNotEmpty;
+
   Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/api/auth/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (data['access_token'] != null) {
+      await saveToken(data['access_token'] as String);
+    }
+    return data;
   }
 
   Future<Map<String, dynamic>> register(String email, String password, String name) async {
@@ -53,6 +77,14 @@ class ApiClient {
   Future<List<dynamic>> getFoods() async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/api/foods'),
+      headers: headers,
+    );
+    return jsonDecode(response.body) as List<dynamic>;
+  }
+
+  Future<List<dynamic>> searchFoods(String query) async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/api/foods/search?q=$query'),
       headers: headers,
     );
     return jsonDecode(response.body) as List<dynamic>;
