@@ -35,6 +35,7 @@ class _DashboardPageState extends State<DashboardPage> {
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
+          IconButton(onPressed: () => Navigator.pushNamed(context, '/parse-meal'), icon: const Icon(Icons.auto_awesome)),
           IconButton(onPressed: () => Navigator.pushNamed(context, '/foods'), icon: const Icon(Icons.restaurant)),
           IconButton(onPressed: () => Navigator.pushNamed(context, '/profile'), icon: const Icon(Icons.person)),
         ],

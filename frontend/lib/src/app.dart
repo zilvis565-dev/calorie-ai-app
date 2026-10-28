@@ -5,6 +5,7 @@ import 'pages/foods_page.dart';
 import 'pages/login_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/register_page.dart';
+import 'pages/parse_meal_page.dart';
 
 class CalorieAiApp extends StatelessWidget {
   const CalorieAiApp({super.key});
@@ -24,6 +25,7 @@ class CalorieAiApp extends StatelessWidget {
         '/dashboard': (_) => const DashboardPage(),
         '/foods': (_) => const FoodsPage(),
         '/profile': (_) => const ProfilePage(),
+        '/parse-meal': (_) => const ParseMealPage(),
       },
     );
   }

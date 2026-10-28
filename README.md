@@ -11,14 +11,11 @@ Starter project for a calorie tracking application with AI-assisted meal parsing
 - Password hashing: Passlib
 - Frontend: Flutter
 - Containerization: Docker Compose
-- AI: placeholder parser service for future LLM integration
+- AI: rule-based placeholder parser service for future LLM integration
 
-## Project structure
+## iOS note
 
-```text
-backend/
-frontend/
-```
+Frontend API URL is now configured for iOS simulator with `http://127.0.0.1:8000`. For a physical iPhone device, this should be changed to your Mac local network IP.【cite§source0.0】
 
 ## Frontend features
 
@@ -26,17 +23,6 @@ frontend/
 - Register page
 - Dashboard page
 - Food list page
-- Add meal from food page
 - Profile page
-
-## Backend endpoints used by frontend
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/users/me`
-- `PUT /api/users/me`
-- `GET /api/foods`
-- `GET /api/foods/search?q=egg`
-- `POST /api/meals/from-food`
-- `GET /api/meals/today`
-- `GET /api/meals/daily-summary`
+- AI meal parse page
+- Parsed meal review and save flow

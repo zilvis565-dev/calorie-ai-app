@@ -90,6 +90,15 @@ class ApiClient {
     );
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
+
+  Future<Map<String, dynamic>> parseMealText(String text) async {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/api/meals/parse'),
+      headers: headers,
+      body: jsonEncode({'text': text}),
+    );
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
 }
 
 final apiClient = ApiClient();
