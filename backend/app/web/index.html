@@ -2,122 +2,137 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Calorie AI App</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 16px; background: #f7f7f7; color: #222; }
-    .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    input, textarea, button, select { width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
-    button { background: #2e7d32; color: white; border: none; font-weight: bold; }
-    button.secondary { background: #1565c0; }
-    .row { display: flex; gap: 8px; }
-    .row > * { flex: 1; }
-    .small { color: #666; font-size: 14px; }
-    .item { padding: 8px 0; border-bottom: 1px solid #eee; }
-  </style>
+  <link rel="stylesheet" href="/web/styles.css" />
 </head>
 <body>
-  <div class="card">
-    <h2>Login</h2>
-    <input id="email" placeholder="Email" value="test7@test.com" />
-    <input id="password" type="password" placeholder="Password" value="123456" />
-    <button onclick="login()">Login</button>
-    <div id="loginStatus" class="small"></div>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Calorie AI</div>
+        <h1>Daily Tracker</h1>
+      </div>
+      <button id="refreshTopBtn" class="icon-btn">Refresh</button>
+    </header>
+
+    <main class="content">
+      <section id="view-login" class="view active">
+        <div class="card hero-card">
+          <h2>Login</h2>
+          <p class="muted">Use your account to access meals and daily stats.</p>
+          <label>Email</label>
+          <input id="email" placeholder="Email" value="test7@test.com" />
+          <label>Password</label>
+          <input id="password" type="password" placeholder="Password" value="123456" />
+          <button id="loginBtn" class="primary-btn">Login</button>
+          <div id="loginStatus" class="status-text"></div>
+        </div>
+      </section>
+
+      <section id="view-home" class="view">
+        <div class="summary-grid">
+          <div class="card stat-card accent-green">
+            <div class="stat-label">Calories</div>
+            <div id="sumCalories" class="stat-value">0</div>
+          </div>
+          <div class="card stat-card accent-blue">
+            <div class="stat-label">Remaining</div>
+            <div id="sumRemaining" class="stat-value">-</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <h3>Macros</h3>
+            <button id="refreshSummaryBtn" class="ghost-btn">Refresh</button>
+          </div>
+          <div class="macro-row">
+            <div class="macro-pill">P <span id="sumProtein">0</span></div>
+            <div class="macro-pill">F <span id="sumFat">0</span></div>
+            <div class="macro-pill">C <span id="sumCarbs">0</span></div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-labels">
+              <span>Target</span>
+              <span id="sumTarget">-</span>
+            </div>
+            <div class="progress-track">
+              <div id="summaryProgress" class="progress-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <h3>Today Meals</h3>
+            <button id="refreshMealsBtn" class="ghost-btn">Refresh</button>
+          </div>
+          <div id="todayMeals" class="list-wrap empty-state">No meals yet.</div>
+        </div>
+      </section>
+
+      <section id="view-add" class="view">
+        <div class="card hero-card">
+          <h2>Add meal</h2>
+          <p class="muted">Type what you ate and save it in one tap.</p>
+          <label>Meal text</label>
+          <textarea id="mealText" rows="4" placeholder="Example: 2 eggs and 100g rice and 30g cheese"></textarea>
+
+          <label>Meal type</label>
+          <div class="chip-row" id="mealTypeChips">
+            <button class="chip active" data-type="breakfast">Breakfast</button>
+            <button class="chip" data-type="lunch">Lunch</button>
+            <button class="chip" data-type="dinner">Dinner</button>
+            <button class="chip" data-type="snack">Snack</button>
+          </div>
+
+          <button id="saveMealBtn" class="primary-btn">Parse and Save</button>
+          <div id="saveStatus" class="status-text"></div>
+
+          <div class="quick-samples">
+            <div class="sample-title">Quick examples</div>
+            <button class="sample-btn" data-text="2 eggs and 100g rice and 30g cheese">Eggs + rice + cheese</button>
+            <button class="sample-btn" data-text="150g chicken and 100g rice">Chicken + rice</button>
+            <button class="sample-btn" data-text="1 banana and 1 apple">Banana + apple</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-history" class="view">
+        <div class="card">
+          <h2>History</h2>
+          <label>From</label>
+          <input id="fromDate" type="date" />
+          <label>To</label>
+          <input id="toDate" type="date" />
+          <button id="loadHistoryBtn" class="primary-btn">Load history</button>
+          <div id="historyList" class="list-wrap empty-state">No history loaded.</div>
+        </div>
+      </section>
+
+      <section id="view-profile" class="view">
+        <div class="card">
+          <h2>Profile</h2>
+          <label>Name</label>
+          <input id="profileName" placeholder="Name" />
+          <label>Daily calorie target</label>
+          <input id="profileTarget" type="number" placeholder="2200" />
+          <button id="saveProfileBtn" class="primary-btn">Save profile</button>
+          <button id="logoutBtn" class="danger-btn">Logout</button>
+          <div id="profileStatus" class="status-text"></div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="nav-btn active" data-view="home">Home</button>
+      <button class="nav-btn" data-view="add">Add</button>
+      <button class="nav-btn" data-view="history">History</button>
+      <button class="nav-btn" data-view="profile">Profile</button>
+    </nav>
   </div>
 
-  <div class="card">
-    <h2>Quick Add Meal</h2>
-    <textarea id="mealText" rows="3" placeholder="Example: 2 eggs and 100g rice and 30g cheese"></textarea>
-    <select id="mealType">
-      <option value="breakfast">Breakfast</option>
-      <option value="lunch">Lunch</option>
-      <option value="dinner">Dinner</option>
-      <option value="snack">Snack</option>
-    </select>
-    <button onclick="parseAndSave()">Parse and Save</button>
-    <div id="saveStatus" class="small"></div>
-  </div>
-
-  <div class="card">
-    <h2>Today Summary</h2>
-    <button class="secondary" onclick="loadSummary()">Refresh Summary</button>
-    <div id="summary" class="small"></div>
-  </div>
-
-  <div class="card">
-    <h2>Today Meals</h2>
-    <button class="secondary" onclick="loadMeals()">Refresh Meals</button>
-    <div id="meals" class="small"></div>
-  </div>
-
-  <script>
-    const baseUrl = window.location.origin;
-    let token = localStorage.getItem('token') || '';
-
-    async function login() {
-      const body = new URLSearchParams();
-      body.append('username', document.getElementById('email').value);
-      body.append('password', document.getElementById('password').value);
-
-      const res = await fetch(`${baseUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body
-      });
-      const data = await res.json();
-      if (data.access_token) {
-        token = data.access_token;
-        localStorage.setItem('token', token);
-        document.getElementById('loginStatus').innerText = 'Logged in successfully';
-        loadSummary();
-        loadMeals();
-      } else {
-        document.getElementById('loginStatus').innerText = data.detail || 'Login failed';
-      }
-    }
-
-    async function parseAndSave() {
-      const text = document.getElementById('mealText').value;
-      const mealType = document.getElementById('mealType').value;
-      const res = await fetch(`${baseUrl}/api/meals/parse-and-save`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ text, meal_type: mealType })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        document.getElementById('saveStatus').innerText = `Saved ${data.saved.created_count} items`;
-        loadSummary();
-        loadMeals();
-      } else {
-        document.getElementById('saveStatus').innerText = data.detail || 'Save failed';
-      }
-    }
-
-    async function loadSummary() {
-      const res = await fetch(`${baseUrl}/api/meals/daily-summary`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      document.getElementById('summary').innerHTML = `Calories: ${data.calories}<br>Protein: ${data.protein}<br>Fat: ${data.fat}<br>Carbs: ${data.carbs}<br>Target: ${data.target_calories}<br>Remaining: ${data.remaining_calories}`;
-    }
-
-    async function loadMeals() {
-      const res = await fetch(`${baseUrl}/api/meals/today`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      document.getElementById('meals').innerHTML = data.map(item => `<div class="item">${item.name} - ${item.grams}g - ${item.calories} kcal - ${item.meal_type || ''}</div>`).join('');
-    }
-
-    if (token) {
-      loadSummary();
-      loadMeals();
-      document.getElementById('loginStatus').innerText = 'Using saved session';
-    }
-  </script>
+  <script src="/web/app.js"></script>
 </body>
 </html>
