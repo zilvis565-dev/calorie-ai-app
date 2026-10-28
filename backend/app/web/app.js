@@ -2,6 +2,7 @@ const state = {
   token: localStorage.getItem('token') || '',
   mealType: 'breakfast',
   profile: null,
+  parsedItems: [],
 };
 
 const baseUrl = window.location.origin;
@@ -158,28 +159,76 @@ async function saveProfile() {
   }
 }
 
-async function parseAndSave() {
+function renderParsedItems() {
+  const section = document.getElementById('parsedSection');
+  const container = document.getElementById('parsedItems');
+  if (!state.parsedItems.length) {
+    section.classList.add('hidden');
+    container.innerHTML = '';
+    return;
+  }
+  section.classList.remove('hidden');
+  container.innerHTML = state.parsedItems.map((item, index) => `
+    <div class="parsed-card">
+      <div class="parsed-name">${item.name}</div>
+      <label>Grams</label>
+      <input type="number" value="${item.grams}" data-index="${index}" class="parsed-grams" />
+      <div class="small-note">Matched ID: ${item.matched_food_id ?? 'none'}</div>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.parsed-grams').forEach(input => {
+    input.addEventListener('input', (e) => {
+      const idx = Number(e.target.dataset.index);
+      state.parsedItems[idx].grams = Number(e.target.value) || state.parsedItems[idx].grams;
+    });
+  });
+}
+
+async function parseOnly() {
   const text = document.getElementById('mealText').value.trim();
   if (!text) {
     setStatus('saveStatus', 'Enter meal text first');
     return;
   }
   try {
-    const data = await api('/api/meals/parse-and-save', {
+    const data = await api('/api/meals/parse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, meal_type: state.mealType }),
+      body: JSON.stringify({ text }),
     });
 
-    let status = `Saved ${data.saved.created_count} item(s)`;
-    if (data.provider && data.provider !== 'rule-based') {
-      status += ` using ${data.provider}`;
-    }
-    if (data.mode === 'llm-scaffold' && data.fallback_items) {
-      status += ' (LLM scaffold active, fallback items used if needed)';
-    }
+    const items = (data.items && data.items.length) ? data.items : (data.fallback_items || []);
+    state.parsedItems = items.map(item => ({
+      name: item.name,
+      grams: item.grams,
+      matched_food_id: item.matched_food_id ?? null,
+    }));
 
+    let status = `Parsed ${state.parsedItems.length} item(s)`;
+    if (data.provider) status += ` using ${data.provider}`;
+    if (data.mode === 'fallback-after-llm-error') status += ' (fallback used)';
     setStatus('saveStatus', status);
+    renderParsedItems();
+  } catch (err) {
+    setStatus('saveStatus', err.message);
+  }
+}
+
+async function saveParsedItems() {
+  if (!state.parsedItems.length) {
+    setStatus('saveStatus', 'Parse meal first');
+    return;
+  }
+  try {
+    const data = await api('/api/meals/save-parsed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: state.parsedItems, meal_type: state.mealType }),
+    });
+    setStatus('saveStatus', `Saved ${data.created_count} item(s)`);
+    state.parsedItems = [];
+    renderParsedItems();
     document.getElementById('mealText').value = '';
     await Promise.all([loadSummary(), loadMeals()]);
     showView('home');
@@ -191,6 +240,8 @@ async function parseAndSave() {
 function logout() {
   state.token = '';
   localStorage.removeItem('token');
+  state.parsedItems = [];
+  renderParsedItems();
   setAuthenticatedUI(false);
   setStatus('loginStatus', 'Logged out');
 }
@@ -212,7 +263,8 @@ function initDates() {
 
 function bindEvents() {
   document.getElementById('loginBtn').addEventListener('click', login);
-  document.getElementById('saveMealBtn').addEventListener('click', parseAndSave);
+  document.getElementById('parseMealBtn').addEventListener('click', parseOnly);
+  document.getElementById('saveMealBtn').addEventListener('click', saveParsedItems);
   document.getElementById('refreshTopBtn').addEventListener('click', async () => {
     await Promise.all([loadSummary(), loadMeals()]);
   });
@@ -242,6 +294,7 @@ async function bootstrap() {
   bindEvents();
   initDates();
   setMealType('breakfast');
+  renderParsedItems();
 
   if (state.token) {
     setAuthenticatedUI(true);

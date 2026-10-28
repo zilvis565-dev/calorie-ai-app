@@ -75,9 +75,9 @@
       <section id="view-add" class="view">
         <div class="card hero-card">
           <h2>Add meal</h2>
-          <p class="muted">Type what you ate and save it in one tap.</p>
+          <p class="muted">Type what you ate, review parsed items, then save.</p>
           <label>Meal text</label>
-          <textarea id="mealText" rows="4" placeholder="Example: 2 eggs and 100g rice and 30g cheese"></textarea>
+          <textarea id="mealText" rows="4" placeholder="Example: 184g liesos varskes ir 150g graikisko jogurto"></textarea>
 
           <label>Meal type</label>
           <div class="chip-row" id="mealTypeChips">
@@ -87,14 +87,24 @@
             <button class="chip" data-type="snack">Snack</button>
           </div>
 
-          <button id="saveMealBtn" class="primary-btn">Parse and Save</button>
+          <div class="row-actions">
+            <button id="parseMealBtn" class="secondary-btn">Parse</button>
+            <button id="saveMealBtn" class="primary-btn">Save all</button>
+          </div>
           <div id="saveStatus" class="status-text"></div>
+
+          <div id="parsedSection" class="parsed-section hidden">
+            <div class="section-head">
+              <h3>Parsed items</h3>
+            </div>
+            <div id="parsedItems"></div>
+          </div>
 
           <div class="quick-samples">
             <div class="sample-title">Quick examples</div>
-            <button class="sample-btn" data-text="2 eggs and 100g rice and 30g cheese">Eggs + rice + cheese</button>
-            <button class="sample-btn" data-text="150g chicken and 100g rice">Chicken + rice</button>
-            <button class="sample-btn" data-text="1 banana and 1 apple">Banana + apple</button>
+            <button class="sample-btn" data-text="184g liesos varskes ir 150g graikisko jogurto">Varške + jogurtas</button>
+            <button class="sample-btn" data-text="180g liesa varske, 80g silauoges, 20g riesutu sviestas">Varškė + šilauogės + sviestas</button>
+            <button class="sample-btn" data-text="1 bananas ir 150g graikisko jogurto">Bananas + jogurtas</button>
           </div>
         </div>
       </section>
