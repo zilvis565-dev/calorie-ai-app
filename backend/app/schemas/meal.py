@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -45,7 +46,7 @@ class MealUpdateRequest(BaseModel):
 
 
 class MealLogResponse(BaseModel):
-    id: str
+    id: UUID
     food_item_id: int | None = None
     name: str
     grams: float
