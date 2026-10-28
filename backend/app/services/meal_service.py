@@ -60,9 +60,9 @@ def save_parsed_meals(db: Session, user_id, request: MealSaveParsedRequest):
         food = None
         if item.matched_food_id is not None:
             food = db.query(FoodItem).filter(FoodItem.id == item.matched_food_id).first()
-        if not food:
+        if food is None:
             food = find_best_food_match(db, item.name)
-        if not food:
+        if food is None:
             continue
         meal = MealLog(
             user_id=user_id,

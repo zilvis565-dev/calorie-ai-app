@@ -17,7 +17,7 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, F
 - Weekly stats for last 7 days
 - Daily summary with remaining calories
 - Rule-based AI parser with better multi-item phrase matching
-- Lithuanian breakfast-friendly food keywords like `liesa varske`, `graikiskas jogurtas`, `silauoges`, `riesutu sviestas`, `avizos`
+- Better Lithuanian quantity parsing for `liesa varske`, `graikiskas jogurtas`, `silauoges`, `riesutu sviestas`, `bananas`
 - LLM integration scaffold with provider config
 - Alembic migration setup
 - Safer auth validation for password length handling

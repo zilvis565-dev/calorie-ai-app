@@ -11,6 +11,7 @@ def rule_based_parse(text: str):
     patterns = [
         (r"(\d+)\s*egg[s]?", "Egg", 60, 1),
         (r"(\d+)\s*banana[s]?", "Banana", 120, 2),
+        (r"(\d+)\s*bananas", "Banana", 120, 2),
         (r"(\d+)\s*apple[s]?", "Apple", 180, 7),
         (r"(\d+)\s*slice[s]?\s*bread", "Bread", 30, 6),
         (r"(\d+)\s*g\s*rice", "Rice cooked", 1, 4),
@@ -24,13 +25,20 @@ def rule_based_parse(text: str):
         (r"(\d+)\s*g\s*milk", "Milk", 1, 13),
         (r"(\d+)\s*g\s*skyr", "Skyr", 1, 14),
         (r"(\d+)\s*g\s*liesa varske", "Cottage cheese", 1, 8),
+        (r"(\d+)\s*g\s*liesos varskes", "Cottage cheese", 1, 8),
         (r"(\d+)\s*g\s*varske", "Cottage cheese", 1, 8),
+        (r"(\d+)\s*g\s*varskes", "Cottage cheese", 1, 8),
         (r"(\d+)\s*g\s*graikiskas jogurtas", "Greek yogurt", 1, 9),
+        (r"(\d+)\s*g\s*graikisko jogurto", "Greek yogurt", 1, 9),
         (r"(\d+)\s*g\s*melynes", "Blueberries", 1, 10),
         (r"(\d+)\s*g\s*silauoges", "Blueberries", 1, 10),
+        (r"(\d+)\s*g\s*silauogiu", "Blueberries", 1, 10),
         (r"(\d+)\s*g\s*riesutu sviestas", "Peanut butter", 1, 11),
+        (r"(\d+)\s*g\s*riesutu sviesto", "Peanut butter", 1, 11),
         (r"(\d+)\s*g\s*avizos", "Oats", 1, 12),
         (r"(\d+)\s*g\s*pienas", "Milk", 1, 13),
+        (r"(\d+)\s*bananas", "Banana", 120, 2),
+        (r"(\d+)\s*bananu", "Banana", 120, 2),
     ]
 
     for pattern, name, gram_factor, food_id in patterns:
@@ -38,13 +46,15 @@ def rule_based_parse(text: str):
             value = int(match.group(1))
             items.append({
                 "name": name,
-                "grams": value * gram_factor,
+                "grams": float(value * gram_factor),
                 "matched_food_id": food_id,
             })
 
     fallback = [
         ("egg", "Egg", 120, 1),
         ("banana", "Banana", 120, 2),
+        ("bananas", "Banana", 120, 2),
+        ("bananu", "Banana", 120, 2),
         ("apple", "Apple", 180, 7),
         ("bread", "Bread", 60, 6),
         ("rice", "Rice cooked", 100, 4),
@@ -58,11 +68,16 @@ def rule_based_parse(text: str):
         ("milk", "Milk", 200, 13),
         ("skyr", "Skyr", 150, 14),
         ("liesa varske", "Cottage cheese", 150, 8),
+        ("liesos varskes", "Cottage cheese", 150, 8),
         ("varske", "Cottage cheese", 150, 8),
+        ("varskes", "Cottage cheese", 150, 8),
         ("graikiskas jogurtas", "Greek yogurt", 150, 9),
+        ("graikisko jogurto", "Greek yogurt", 150, 9),
         ("melynes", "Blueberries", 80, 10),
         ("silauoges", "Blueberries", 80, 10),
+        ("silauogiu", "Blueberries", 80, 10),
         ("riesutu sviestas", "Peanut butter", 20, 11),
+        ("riesutu sviesto", "Peanut butter", 20, 11),
         ("avizos", "Oats", 50, 12),
         ("pienas", "Milk", 200, 13),
     ]
@@ -71,14 +86,14 @@ def rule_based_parse(text: str):
         if keyword in lower and not any(item["name"] == name for item in items):
             items.append({
                 "name": name,
-                "grams": grams,
+                "grams": float(grams),
                 "matched_food_id": food_id,
             })
 
     ordered = []
     seen = set()
     for item in items:
-        key = (item["name"], item["grams"])
+        key = (item["name"], item["grams"], item["matched_food_id"])
         if key not in seen:
             seen.add(key)
             ordered.append(item)
