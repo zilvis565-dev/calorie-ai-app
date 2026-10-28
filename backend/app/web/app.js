@@ -170,7 +170,16 @@ async function parseAndSave() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, meal_type: state.mealType }),
     });
-    setStatus('saveStatus', `Saved ${data.saved.created_count} item(s)`);
+
+    let status = `Saved ${data.saved.created_count} item(s)`;
+    if (data.provider && data.provider !== 'rule-based') {
+      status += ` using ${data.provider}`;
+    }
+    if (data.mode === 'llm-scaffold' && data.fallback_items) {
+      status += ' (LLM scaffold active, fallback items used if needed)';
+    }
+
+    setStatus('saveStatus', status);
     document.getElementById('mealText').value = '';
     await Promise.all([loadSummary(), loadMeals()]);
     showView('home');

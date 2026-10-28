@@ -1,5 +1,6 @@
 import json
 import re
+from typing import Any
 
 from app.core.config import settings
 
@@ -106,9 +107,15 @@ def rule_based_parse(text: str):
     }
 
 
-def llm_parse(text: str):
-    prompt = {
+def build_llm_prompt(text: str) -> dict[str, Any]:
+    return {
         "instruction": "Extract food items from the user's text and return JSON only.",
+        "rules": [
+            "Return only structured food items.",
+            "Prefer explicit grams if stated.",
+            "If quantity is not in grams, estimate grams conservatively.",
+            "Return items as an array.",
+        ],
         "schema": {
             "items": [
                 {"name": "string", "grams": "number", "matched_food_id": "number or null"}
@@ -116,11 +123,18 @@ def llm_parse(text: str):
         },
         "input": text,
     }
+
+
+def llm_parse(text: str):
+    prompt = build_llm_prompt(text)
+    provider = settings.ai_provider.lower().strip()
+
     return {
         "original_text": text,
-        "message": "LLM integration scaffold is ready. Set AI_PROVIDER and implement provider request logic.",
-        "provider": settings.ai_provider,
-        "prompt_preview": json.dumps(prompt),
+        "message": "LLM integration scaffold is ready. Set AI_PROVIDER, AI_API_KEY, AI_MODEL and implement provider request logic.",
+        "provider": provider,
+        "mode": "llm-scaffold",
+        "prompt_preview": json.dumps(prompt, ensure_ascii=False),
         "items": [],
     }
 
@@ -128,5 +142,10 @@ def llm_parse(text: str):
 def parse_meal_text(text: str):
     provider = settings.ai_provider.lower().strip()
     if provider in {"openai", "anthropic", "gemini", "custom"}:
-        return llm_parse(text)
+        llm_result = llm_parse(text)
+        fallback_result = rule_based_parse(text)
+        return {
+            **llm_result,
+            "fallback_items": fallback_result.get("items", []),
+        }
     return rule_based_parse(text)
