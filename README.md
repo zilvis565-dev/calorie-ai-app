@@ -7,6 +7,8 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, F
 - JWT authentication
 - User profile endpoints
 - Food list and food search
+- Smarter local food matching with Lithuanian character normalization
+- Food provider scaffold for future large external databases
 - Meal creation from food item
 - Save multiple parsed meal items in one request
 - Parse and save meal text in one request

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.models.food_item import FoodItem
 from app.models.meal_log import MealLog
 from app.schemas.meal import MealCreateFromFoodRequest, MealCreateRequest, MealSaveParsedRequest, MealUpdateRequest
+from app.services.food_search_service import find_best_food_match
 
 
 def create_meal_log(db: Session, user_id, request: MealCreateRequest):
@@ -56,9 +57,11 @@ def create_meal_from_food(db: Session, user_id, request: MealCreateFromFoodReque
 def save_parsed_meals(db: Session, user_id, request: MealSaveParsedRequest):
     created = []
     for item in request.items:
-        if item.matched_food_id is None:
-            continue
-        food = db.query(FoodItem).filter(FoodItem.id == item.matched_food_id).first()
+        food = None
+        if item.matched_food_id is not None:
+            food = db.query(FoodItem).filter(FoodItem.id == item.matched_food_id).first()
+        if not food:
+            food = find_best_food_match(db, item.name)
         if not food:
             continue
         meal = MealLog(

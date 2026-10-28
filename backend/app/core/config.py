@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     ai_provider: str = "mock"
     ai_api_key: str = ""
     ai_model: str = ""
+    food_provider: str = "local"
+    food_provider_api_key: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
