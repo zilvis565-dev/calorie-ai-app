@@ -18,13 +18,19 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
     existing = get_user_by_email(db, request.email)
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-    user = create_user(db, request)
+    try:
+        user = create_user(db, request)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     return user
 
 
 @router.post("/login", response_model=TokenResponse)
 def login(request: LoginRequest, db: Session = Depends(get_db)):
-    token = authenticate_user(db, request.email, request.password)
+    try:
+        token = authenticate_user(db, request.email, request.password)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     if not token:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     return {"access_token": token, "token_type": "bearer"}
