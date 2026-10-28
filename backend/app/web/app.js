@@ -60,7 +60,7 @@ async function login() {
     localStorage.setItem('token', state.token);
     setStatus('loginStatus', 'Logged in successfully');
     setAuthenticatedUI(true);
-    await Promise.all([loadSummary(), loadMeals(), loadProfile()]);
+    await Promise.all([loadSummary(), loadMeals(), loadProfile(), loadQuickFoods()]);
   } catch (err) {
     setStatus('loginStatus', err.message);
   }
@@ -84,12 +84,6 @@ async function loadSummary() {
   } catch (err) {
     setStatus('saveStatus', err.message);
   }
-}
-
-function mealTypeOptions(selected) {
-  return ['breakfast', 'lunch', 'dinner', 'snack']
-    .map(type => `<option value="${type}" ${selected === type ? 'selected' : ''}>${type}</option>`)
-    .join('');
 }
 
 async function editMeal(meal) {
@@ -166,6 +160,28 @@ async function loadHistory() {
     `).join('');
   } catch (err) {
     document.getElementById('historyList').innerHTML = `<div class="empty-state">${err.message}</div>`;
+  }
+}
+
+async function loadWeeklyStats() {
+  try {
+    const data = await api('/api/meals/weekly-stats');
+    const box = document.getElementById('weeklyStats');
+    const days = data.days || [];
+    if (!days.length) {
+      box.className = 'list-wrap empty-state';
+      box.innerHTML = 'No weekly stats available.';
+      return;
+    }
+    box.className = 'list-wrap';
+    box.innerHTML = days.map(day => `
+      <div class="list-item">
+        <div class="item-title">${day.date}</div>
+        <div class="item-sub">${day.calories} kcal • P ${day.protein} • F ${day.fat} • C ${day.carbs}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    document.getElementById('weeklyStats').innerHTML = `<div class="empty-state">${err.message}</div>`;
   }
 }
 
@@ -276,6 +292,51 @@ async function saveParsedItems() {
   }
 }
 
+async function loadQuickFoods(query = '') {
+  try {
+    const path = query ? `/api/foods/search?q=${encodeURIComponent(query)}` : '/api/foods';
+    const data = await api(path);
+    const box = document.getElementById('quickFoods');
+    if (!data.length) {
+      box.className = 'list-wrap empty-state';
+      box.innerHTML = 'No foods found.';
+      return;
+    }
+    box.className = 'list-wrap';
+    box.innerHTML = data.slice(0, 12).map(item => `
+      <div class="list-item">
+        <div class="item-title">${item.name}</div>
+        <div class="item-sub">${item.calories_per_100g} kcal / 100g</div>
+        <div class="item-actions">
+          <button class="small-btn" onclick='quickAddFood(${JSON.stringify(item)})'>Quick add</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    document.getElementById('quickFoods').innerHTML = `<div class="empty-state">${err.message}</div>`;
+  }
+}
+
+async function quickAddFood(item) {
+  const grams = prompt(`How many grams for ${item.name}?`, '100');
+  if (grams === null) return;
+  try {
+    await api('/api/meals/from-food', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        food_item_id: item.id,
+        grams: Number(grams),
+        meal_type: state.mealType,
+      }),
+    });
+    await Promise.all([loadSummary(), loadMeals()]);
+    showView('home');
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 function logout() {
   state.token = '';
   localStorage.removeItem('token');
@@ -310,8 +371,14 @@ function bindEvents() {
   document.getElementById('refreshSummaryBtn').addEventListener('click', loadSummary);
   document.getElementById('refreshMealsBtn').addEventListener('click', loadMeals);
   document.getElementById('loadHistoryBtn').addEventListener('click', loadHistory);
+  document.getElementById('loadWeeklyBtn').addEventListener('click', loadWeeklyStats);
   document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
   document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('refreshQuickFoodsBtn').addEventListener('click', () => loadQuickFoods());
+  document.getElementById('searchQuickFoodsBtn').addEventListener('click', () => {
+    const q = document.getElementById('quickFoodSearch').value.trim();
+    loadQuickFoods(q);
+  });
 
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => showView(btn.dataset.view));
@@ -338,7 +405,7 @@ async function bootstrap() {
   if (state.token) {
     setAuthenticatedUI(true);
     try {
-      await Promise.all([loadSummary(), loadMeals(), loadProfile()]);
+      await Promise.all([loadSummary(), loadMeals(), loadProfile(), loadQuickFoods()]);
     } catch (_) {
       logout();
     }
@@ -349,4 +416,5 @@ async function bootstrap() {
 
 window.editMeal = editMeal;
 window.deleteMeal = deleteMeal;
+window.quickAddFood = quickAddFood;
 bootstrap();

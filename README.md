@@ -28,3 +28,4 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, F
 - Simple mobile-friendly web UI available at `/web`
 - Parse preview flow with editable grams before saving
 - Edit and delete actions directly in Today Meals web view
+- Quick add foods section and weekly stats in web UI

@@ -107,16 +107,32 @@
             <button class="sample-btn" data-text="1 bananas ir 150g graikisko jogurto">Bananas + jogurtas</button>
           </div>
         </div>
+
+        <div class="card">
+          <div class="section-head">
+            <h3>Quick add foods</h3>
+            <button id="refreshQuickFoodsBtn" class="ghost-btn">Refresh</button>
+          </div>
+          <div class="row-actions">
+            <input id="quickFoodSearch" placeholder="Search food" />
+            <button id="searchQuickFoodsBtn" class="secondary-btn">Search</button>
+          </div>
+          <div id="quickFoods" class="list-wrap empty-state">No foods loaded yet.</div>
+        </div>
       </section>
 
       <section id="view-history" class="view">
         <div class="card">
-          <h2>History</h2>
+          <div class="section-head">
+            <h2>History</h2>
+            <button id="loadWeeklyBtn" class="ghost-btn">Weekly stats</button>
+          </div>
           <label>From</label>
           <input id="fromDate" type="date" />
           <label>To</label>
           <input id="toDate" type="date" />
           <button id="loadHistoryBtn" class="primary-btn">Load history</button>
+          <div id="weeklyStats" class="list-wrap empty-state">No weekly stats loaded.</div>
           <div id="historyList" class="list-wrap empty-state">No history loaded.</div>
         </div>
       </section>
