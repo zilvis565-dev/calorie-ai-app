@@ -6,6 +6,10 @@ class Settings(BaseSettings):
     app_env: str = "development"
     app_host: str = "0.0.0.0"
     app_port: int = 8000
+    database_url: str = "postgresql+psycopg://postgres:postgres@db:5432/calorie_ai"
+    jwt_secret_key: str = "change-me"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 1440
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
