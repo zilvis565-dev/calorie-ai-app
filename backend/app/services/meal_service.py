@@ -93,3 +93,7 @@ def get_daily_summary(db: Session, user_id, daily_target=None):
     if daily_target is not None:
         summary["remaining_calories"] = round(daily_target - result[0], 2)
     return summary
+
+
+def get_meal_type_options():
+    return ["breakfast", "lunch", "dinner", "snack"]

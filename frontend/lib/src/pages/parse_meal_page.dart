@@ -15,31 +15,87 @@ class _ParseMealPageState extends State<ParseMealPage> {
   List<ParsedMealItem> items = [];
   String? message;
   bool loading = false;
+  String mealType = 'snack';
 
   Future<void> parseMeal() async {
     setState(() {
       loading = true;
       message = null;
     });
-    final result = await apiClient.parseMealText(textController.text);
-    setState(() {
-      items = (result['items'] as List)
-          .map((e) => ParsedMealItem.fromJson(e as Map<String, dynamic>))
-          .toList();
-      message = result['message'] as String?;
-      loading = false;
-    });
+    try {
+      final result = await apiClient.parseMealText(textController.text);
+      setState(() {
+        items = (result['items'] as List)
+            .map((e) => ParsedMealItem.fromJson(e as Map<String, dynamic>))
+            .toList();
+        message = result['message'] as String?;
+      });
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
   }
 
-  Future<void> saveItem(ParsedMealItem item) async {
+  Future<void> editAndSaveItem(int index) async {
+    final item = items[index];
     if (item.matchedFoodId == null) return;
-    await apiClient.createMealFromFood(
-      foodItemId: item.matchedFoodId!,
-      grams: item.grams,
+
+    final gramsController = TextEditingController(text: item.grams.toStringAsFixed(0));
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Edit ${item.name}'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: gramsController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Grams'),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: mealType,
+                items: const [
+                  DropdownMenuItem(value: 'breakfast', child: Text('Breakfast')),
+                  DropdownMenuItem(value: 'lunch', child: Text('Lunch')),
+                  DropdownMenuItem(value: 'dinner', child: Text('Dinner')),
+                  DropdownMenuItem(value: 'snack', child: Text('Snack')),
+                ],
+                onChanged: (value) {
+                  if (value != null) setDialogState(() => mealType = value);
+                },
+                decoration: const InputDecoration(labelText: 'Meal type'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () async {
+                await apiClient.createMealFromFood(
+                  foodItemId: item.matchedFoodId!,
+                  grams: double.tryParse(gramsController.text) ?? item.grams,
+                  mealType: mealType,
+                );
+                if (!mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${item.name} saved')),
+                );
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  Future<void> refreshDashboardHint() async {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${item.name} saved')),
+      const SnackBar(content: Text('Meal saved. Go back to refresh dashboard.')),
     );
   }
 
@@ -59,6 +115,20 @@ class _ParseMealPageState extends State<ParseMealPage> {
                 labelText: 'What did you eat?',
                 border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: mealType,
+              items: const [
+                DropdownMenuItem(value: 'breakfast', child: Text('Breakfast')),
+                DropdownMenuItem(value: 'lunch', child: Text('Lunch')),
+                DropdownMenuItem(value: 'dinner', child: Text('Dinner')),
+                DropdownMenuItem(value: 'snack', child: Text('Snack')),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => mealType = value);
+              },
+              decoration: const InputDecoration(labelText: 'Meal type'),
             ),
             const SizedBox(height: 12),
             ElevatedButton(
@@ -81,8 +151,11 @@ class _ParseMealPageState extends State<ParseMealPage> {
                       subtitle: Text('${item.grams} g'),
                       trailing: item.matchedFoodId != null
                           ? ElevatedButton(
-                              onPressed: () => saveItem(item),
-                              child: const Text('Save'),
+                              onPressed: () async {
+                                await editAndSaveItem(index);
+                                await refreshDashboardHint();
+                              },
+                              child: const Text('Edit & Save'),
                             )
                           : const Text('No match'),
                     ),
