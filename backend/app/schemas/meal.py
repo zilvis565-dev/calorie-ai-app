@@ -21,6 +21,17 @@ class MealParseRequest(BaseModel):
     text: str = Field(min_length=1)
 
 
+class ParsedMealItem(BaseModel):
+    name: str
+    grams: float
+    matched_food_id: int | None = None
+
+
+class MealSaveParsedRequest(BaseModel):
+    items: list[ParsedMealItem]
+    meal_type: str | None = None
+
+
 class MealCreateRequest(BaseModel):
     food_item_id: int | None = None
     name: str

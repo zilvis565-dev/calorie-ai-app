@@ -13,6 +13,7 @@ from app.schemas.meal import (
     MealCreateRequest,
     MealLogResponse,
     MealParseRequest,
+    MealSaveParsedRequest,
     MealUpdateRequest,
 )
 from app.services.ai_service import parse_meal_text
@@ -26,6 +27,7 @@ from app.services.meal_service import (
     get_meal_history,
     get_todays_meals,
     get_weekly_stats,
+    save_parsed_meals,
     update_meal,
 )
 
@@ -56,6 +58,12 @@ def calculate_meal(request: MealCalculationRequest):
 @router.post("/parse")
 def parse_meal(request: MealParseRequest):
     return parse_meal_text(request.text)
+
+
+@router.post("/save-parsed")
+def save_parsed(request: MealSaveParsedRequest, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    user = get_current_user(token, db)
+    return save_parsed_meals(db, user.id, request)
 
 
 @router.post("", response_model=MealLogResponse)

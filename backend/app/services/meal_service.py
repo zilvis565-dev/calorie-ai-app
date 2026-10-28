@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.models.food_item import FoodItem
 from app.models.meal_log import MealLog
-from app.schemas.meal import MealCreateFromFoodRequest, MealCreateRequest, MealUpdateRequest
+from app.schemas.meal import MealCreateFromFoodRequest, MealCreateRequest, MealSaveParsedRequest, MealUpdateRequest
 
 
 def create_meal_log(db: Session, user_id, request: MealCreateRequest):
@@ -51,6 +51,46 @@ def create_meal_from_food(db: Session, user_id, request: MealCreateFromFoodReque
     db.commit()
     db.refresh(meal)
     return meal
+
+
+def save_parsed_meals(db: Session, user_id, request: MealSaveParsedRequest):
+    created = []
+    for item in request.items:
+        if item.matched_food_id is None:
+            continue
+        food = db.query(FoodItem).filter(FoodItem.id == item.matched_food_id).first()
+        if not food:
+            continue
+        meal = MealLog(
+            user_id=user_id,
+            food_item_id=food.id,
+            name=food.name,
+            grams=item.grams,
+            calories=round((food.calories_per_100g * item.grams) / 100, 2),
+            protein=round((food.protein_per_100g * item.grams) / 100, 2),
+            fat=round((food.fat_per_100g * item.grams) / 100, 2),
+            carbs=round((food.carbs_per_100g * item.grams) / 100, 2),
+            meal_type=request.meal_type,
+            eaten_at=datetime.utcnow(),
+        )
+        db.add(meal)
+        created.append(meal)
+    db.commit()
+    for meal in created:
+        db.refresh(meal)
+    return {
+        "created_count": len(created),
+        "items": [
+            {
+                "id": str(meal.id),
+                "name": meal.name,
+                "grams": meal.grams,
+                "calories": meal.calories,
+                "meal_type": meal.meal_type,
+            }
+            for meal in created
+        ],
+    }
 
 
 def get_todays_meals(db: Session, user_id):

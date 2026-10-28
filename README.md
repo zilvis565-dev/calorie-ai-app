@@ -8,6 +8,7 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, a
 - User profile endpoints
 - Food list and food search
 - Meal creation from food item
+- Save multiple parsed meal items in one request
 - Meal update and delete
 - Meal history by date range
 - Weekly stats for last 7 days
