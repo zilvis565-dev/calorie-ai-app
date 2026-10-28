@@ -15,3 +15,10 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UserUpdateRequest(BaseModel):
+    name: str | None = None
+    age: int | None = None
+    height_cm: int | None = None
+    daily_calorie_target: int | None = None

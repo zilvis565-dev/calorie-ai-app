@@ -8,6 +8,11 @@ from app.schemas.food import FoodResponse
 router = APIRouter()
 
 
+@router.get("", response_model=list[FoodResponse])
+def list_foods(db: Session = Depends(get_db)):
+    return db.query(FoodItem).order_by(FoodItem.name.asc()).limit(100).all()
+
+
 @router.get("/search", response_model=list[FoodResponse])
 def search_foods(q: str, db: Session = Depends(get_db)):
     return (

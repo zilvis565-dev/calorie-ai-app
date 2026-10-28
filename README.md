@@ -31,6 +31,7 @@ backend/
         health.py
         foods.py
         meals.py
+        users.py
     models/
       user.py
       food_item.py
@@ -45,25 +46,8 @@ backend/
       ai_service.py
       auth_service.py
       meal_service.py
+      user_service.py
 ```
-
-## Quick start
-
-1. Copy environment file:
-
-```bash
-cp .env.example .env
-```
-
-2. Start services:
-
-```bash
-docker compose up --build
-```
-
-3. Open API docs:
-
-- http://localhost:8000/docs
 
 ## Endpoints
 
@@ -71,10 +55,14 @@ docker compose up --build
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/auth/me`
+- `GET /api/foods`
 - `GET /api/foods/search?q=egg`
 - `POST /api/meals`
+- `POST /api/meals/from-food`
 - `GET /api/meals/today`
 - `GET /api/meals/daily-summary`
+- `GET /api/users/me`
+- `PUT /api/users/me`
 - `POST /api/meals/calculate`
 - `POST /api/meals/parse`
 
@@ -83,4 +71,4 @@ docker compose up --build
 - Database tables are created automatically at startup in this starter version.
 - Basic food seed data is inserted automatically if the `food_items` table is empty.
 - AI parser is still a placeholder and should be replaced with a real LLM integration.
-- Next step: add Alembic migrations and Flutter frontend.
+- Daily summary now includes target calories and remaining calories when user profile target is set.

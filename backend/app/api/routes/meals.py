@@ -5,11 +5,22 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.session import get_db
-from app.schemas.meal import MealCalculationRequest, MealCreateRequest, MealLogResponse, MealParseRequest
+from app.schemas.meal import (
+    MealCalculationRequest,
+    MealCreateFromFoodRequest,
+    MealCreateRequest,
+    MealLogResponse,
+    MealParseRequest,
+)
 from app.services.ai_service import parse_meal_text
 from app.services.auth_service import get_user_by_email
 from app.services.calorie_service import calculate_meal_totals
-from app.services.meal_service import create_meal_log, get_daily_summary, get_todays_meals
+from app.services.meal_service import (
+    create_meal_from_food,
+    create_meal_log,
+    get_daily_summary,
+    get_todays_meals,
+)
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -46,6 +57,12 @@ def create_meal(request: MealCreateRequest, token: str = Depends(oauth2_scheme),
     return create_meal_log(db, user.id, request)
 
 
+@router.post("/from-food", response_model=MealLogResponse)
+def create_meal_by_food(request: MealCreateFromFoodRequest, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    user = get_current_user(token, db)
+    return create_meal_from_food(db, user.id, request)
+
+
 @router.get("/today", response_model=list[MealLogResponse])
 def today_meals(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     user = get_current_user(token, db)
@@ -55,4 +72,4 @@ def today_meals(token: str = Depends(oauth2_scheme), db: Session = Depends(get_d
 @router.get("/daily-summary")
 def daily_summary(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     user = get_current_user(token, db)
-    return get_daily_summary(db, user.id)
+    return get_daily_summary(db, user.id, user.daily_calorie_target)

@@ -32,6 +32,13 @@ class MealCreateRequest(BaseModel):
     eaten_at: datetime | None = None
 
 
+class MealCreateFromFoodRequest(BaseModel):
+    food_item_id: int
+    grams: float = Field(gt=0)
+    meal_type: str | None = None
+    eaten_at: datetime | None = None
+
+
 class MealLogResponse(BaseModel):
     id: str
     food_item_id: int | None = None
