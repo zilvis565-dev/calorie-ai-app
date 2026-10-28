@@ -86,6 +86,41 @@ async function loadSummary() {
   }
 }
 
+function mealTypeOptions(selected) {
+  return ['breakfast', 'lunch', 'dinner', 'snack']
+    .map(type => `<option value="${type}" ${selected === type ? 'selected' : ''}>${type}</option>`)
+    .join('');
+}
+
+async function editMeal(meal) {
+  const grams = prompt(`Edit grams for ${meal.name}`, meal.grams);
+  if (grams === null) return;
+  const mealType = prompt(`Edit meal type for ${meal.name} (breakfast/lunch/dinner/snack)`, meal.meal_type || 'snack');
+  if (mealType === null) return;
+
+  try {
+    await api(`/api/meals/${meal.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ grams: Number(grams), meal_type: mealType }),
+    });
+    await Promise.all([loadSummary(), loadMeals()]);
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function deleteMeal(mealId) {
+  const ok = confirm('Delete this meal?');
+  if (!ok) return;
+  try {
+    await api(`/api/meals/${mealId}`, { method: 'DELETE' });
+    await Promise.all([loadSummary(), loadMeals()]);
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 async function loadMeals() {
   try {
     const data = await api('/api/meals/today');
@@ -100,6 +135,10 @@ async function loadMeals() {
       <div class="list-item">
         <div class="item-title">${item.name}</div>
         <div class="item-sub">${item.grams} g • ${item.calories} kcal • ${item.meal_type || ''}</div>
+        <div class="item-actions">
+          <button class="small-btn" onclick='editMeal(${JSON.stringify(item)})'>Edit</button>
+          <button class="small-btn danger-small" onclick='deleteMeal("${item.id}")'>Delete</button>
+        </div>
       </div>
     `).join('');
   } catch (err) {
@@ -308,4 +347,6 @@ async function bootstrap() {
   }
 }
 
+window.editMeal = editMeal;
+window.deleteMeal = deleteMeal;
 bootstrap();

@@ -112,6 +112,17 @@ button {
   color: #234;
   padding: 10px 12px;
 }
+.small-btn {
+  background: #eef3f6;
+  color: #223;
+  padding: 8px 10px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+.danger-small {
+  background: #ffebee;
+  color: #b71c1c;
+}
 .status-text {
   margin-top: 12px;
   color: #4f5d69;
@@ -126,6 +137,7 @@ button {
 .list-item:last-child { border-bottom: none; }
 .item-title { font-weight: 700; }
 .item-sub { color: #657481; margin-top: 4px; font-size: 14px; }
+.item-actions { display: flex; gap: 8px; margin-top: 10px; }
 .empty-state { color: #7b8792; padding: 10px 0; }
 .bottom-nav {
   position: fixed;
