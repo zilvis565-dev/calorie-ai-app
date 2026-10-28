@@ -12,6 +12,7 @@ from app.schemas.meal import (
     MealCreateFromFoodRequest,
     MealCreateRequest,
     MealLogResponse,
+    MealParseAndSaveRequest,
     MealParseRequest,
     MealSaveParsedRequest,
     MealUpdateRequest,
@@ -58,6 +59,21 @@ def calculate_meal(request: MealCalculationRequest):
 @router.post("/parse")
 def parse_meal(request: MealParseRequest):
     return parse_meal_text(request.text)
+
+
+@router.post("/parse-and-save")
+def parse_and_save(request: MealParseAndSaveRequest, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    user = get_current_user(token, db)
+    parsed = parse_meal_text(request.text)
+    items = parsed.get("items", [])
+    save_request = MealSaveParsedRequest(items=items, meal_type=request.meal_type)
+    saved = save_parsed_meals(db, user.id, save_request)
+    return {
+        "provider": parsed.get("provider"),
+        "message": parsed.get("message"),
+        "parsed_items": items,
+        "saved": saved,
+    }
 
 
 @router.post("/save-parsed")
