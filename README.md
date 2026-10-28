@@ -20,6 +20,7 @@ backend/
     main.py
     db/
       base.py
+      seed.py
       session.py
     core/
       config.py
@@ -28,6 +29,7 @@ backend/
       routes/
         auth.py
         health.py
+        foods.py
         meals.py
     models/
       user.py
@@ -35,12 +37,14 @@ backend/
       meal_log.py
     schemas/
       auth.py
+      food.py
       meal.py
       user.py
     services/
       calorie_service.py
       ai_service.py
       auth_service.py
+      meal_service.py
 ```
 
 ## Quick start
@@ -67,11 +71,16 @@ docker compose up --build
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/auth/me`
+- `GET /api/foods/search?q=egg`
+- `POST /api/meals`
+- `GET /api/meals/today`
+- `GET /api/meals/daily-summary`
 - `POST /api/meals/calculate`
 - `POST /api/meals/parse`
 
 ## Notes
 
 - Database tables are created automatically at startup in this starter version.
+- Basic food seed data is inserted automatically if the `food_items` table is empty.
 - AI parser is still a placeholder and should be replaced with a real LLM integration.
-- Next step: add food seed data and meal persistence endpoints.
+- Next step: add Alembic migrations and Flutter frontend.
