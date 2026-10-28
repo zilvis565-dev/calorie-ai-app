@@ -1,15 +1,35 @@
 # Calorie AI App
 
-Starter project for a calorie tracking application with AI-assisted meal parsing.
+This repository now contains a fuller MVP starter for an AI-assisted calorie tracker with FastAPI backend, PostgreSQL database, and Flutter frontend.【cite§source0.0】
 
-## Latest additions
+## Included backend features
 
-- Meal type selection when adding food manually
-- Meal type selection in AI parse flow
-- Edit grams before saving parsed meal
-- Loading states on dashboard and food search
-- Dashboard auto-refresh after returning from foods or AI screen
+- JWT authentication
+- User profile endpoints
+- Food list and food search
+- Meal creation from food item
+- Daily summary with remaining calories
+- Rule-based AI placeholder meal parser
 
-## iOS note
+## Included frontend features
 
-For iOS simulator, frontend uses `http://127.0.0.1:8000` as the API base URL. For a physical iPhone, change it to your Mac local network IP in `frontend/lib/src/api_config.dart`.
+- Splash screen with auto-login
+- Login and registration
+- Dashboard with summary and today's meals
+- Food search and add flow
+- Profile update and logout
+- AI text meal parsing flow with edit before save
+- Loading and basic error states
+
+## iOS support
+
+- `frontend/lib/src/api_config.dart` is configured for iOS Simulator with `http://127.0.0.1:8000`
+- `frontend/ios/Runner/Info.plist` allows HTTP local development traffic
+- For physical iPhone testing, replace `127.0.0.1` with your Mac LAN IP
+
+## Recommended next future step
+
+- Replace rule-based parser with real LLM integration
+- Add Alembic migrations
+- Add secure token refresh flow
+- Add native barcode scanner or photo meal detection

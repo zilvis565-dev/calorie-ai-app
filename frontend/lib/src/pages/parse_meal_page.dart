@@ -18,21 +18,29 @@ class _ParseMealPageState extends State<ParseMealPage> {
   String mealType = 'snack';
 
   Future<void> parseMeal() async {
+    if (textController.text.trim().isEmpty) {
+      setState(() => message = 'Enter meal text first');
+      return;
+    }
     setState(() {
       loading = true;
       message = null;
     });
-    try {
-      final result = await apiClient.parseMealText(textController.text);
+    final result = await apiClient.parseMealText(textController.text);
+    if (result['error'] == true) {
       setState(() {
-        items = (result['items'] as List)
-            .map((e) => ParsedMealItem.fromJson(e as Map<String, dynamic>))
-            .toList();
-        message = result['message'] as String?;
+        message = result['detail']?.toString() ?? 'Parsing failed';
+        loading = false;
       });
-    } finally {
-      if (mounted) setState(() => loading = false);
+      return;
     }
+    setState(() {
+      items = (result['items'] as List)
+          .map((e) => ParsedMealItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+      message = result['message'] as String?;
+      loading = false;
+    });
   }
 
   Future<void> editAndSaveItem(int index) async {
@@ -73,7 +81,7 @@ class _ParseMealPageState extends State<ParseMealPage> {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
-                await apiClient.createMealFromFood(
+                final result = await apiClient.createMealFromFood(
                   foodItemId: item.matchedFoodId!,
                   grams: double.tryParse(gramsController.text) ?? item.grams,
                   mealType: mealType,
@@ -81,7 +89,7 @@ class _ParseMealPageState extends State<ParseMealPage> {
                 if (!mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${item.name} saved')),
+                  SnackBar(content: Text(result['error'] == true ? 'Failed to save item' : '${item.name} saved')),
                 );
               },
               child: const Text('Save'),
@@ -89,13 +97,6 @@ class _ParseMealPageState extends State<ParseMealPage> {
           ],
         ),
       ),
-    );
-  }
-
-  Future<void> refreshDashboardHint() async {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Meal saved. Go back to refresh dashboard.')),
     );
   }
 
@@ -137,31 +138,30 @@ class _ParseMealPageState extends State<ParseMealPage> {
             ),
             if (message != null) ...[
               const SizedBox(height: 12),
-              Text(message!),
+              Text(message!, style: TextStyle(color: message!.contains('failed') || message!.contains('Enter') ? Colors.red : Colors.black)),
             ],
             const SizedBox(height: 12),
             Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(item.name),
-                      subtitle: Text('${item.grams} g'),
-                      trailing: item.matchedFoodId != null
-                          ? ElevatedButton(
-                              onPressed: () async {
-                                await editAndSaveItem(index);
-                                await refreshDashboardHint();
-                              },
-                              child: const Text('Edit & Save'),
-                            )
-                          : const Text('No match'),
+              child: items.isEmpty && !loading
+                  ? const Center(child: Text('No parsed items yet'))
+                  : ListView.builder(
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return Card(
+                          child: ListTile(
+                            title: Text(item.name),
+                            subtitle: Text('${item.grams} g • $mealType'),
+                            trailing: item.matchedFoodId != null
+                                ? ElevatedButton(
+                                    onPressed: () => editAndSaveItem(index),
+                                    child: const Text('Edit & Save'),
+                                  )
+                                : const Text('No match'),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

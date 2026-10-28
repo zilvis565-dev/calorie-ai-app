@@ -14,6 +14,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Map<String, dynamic>? summary;
   List<MealLog> meals = [];
   bool loading = false;
+  String? error;
 
   @override
   void initState() {
@@ -22,9 +23,16 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> loadData() async {
-    setState(() => loading = true);
+    setState(() {
+      loading = true;
+      error = null;
+    });
     try {
       final summaryData = await apiClient.getDailySummary();
+      if (summaryData['error'] == true) {
+        setState(() => error = summaryData['detail']?.toString() ?? 'Failed to load summary');
+        return;
+      }
       final mealsData = await apiClient.getTodayMeals();
       setState(() {
         summary = summaryData;
@@ -60,40 +68,43 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: loadData,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Calories: ${summary?['calories'] ?? 0}'),
-                          Text('Protein: ${summary?['protein'] ?? 0}'),
-                          Text('Fat: ${summary?['fat'] ?? 0}'),
-                          Text('Carbs: ${summary?['carbs'] ?? 0}'),
-                          Text('Target: ${summary?['target_calories'] ?? '-'}'),
-                          Text('Remaining: ${summary?['remaining_calories'] ?? '-'}'),
-                        ],
+          : error != null
+              ? Center(child: Text(error!, style: const TextStyle(color: Colors.red)))
+              : RefreshIndicator(
+                  onRefresh: loadData,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Calories: ${summary?['calories'] ?? 0}'),
+                              Text('Protein: ${summary?['protein'] ?? 0}'),
+                              Text('Fat: ${summary?['fat'] ?? 0}'),
+                              Text('Carbs: ${summary?['carbs'] ?? 0}'),
+                              Text('Target: ${summary?['target_calories'] ?? '-'}'),
+                              Text('Remaining: ${summary?['remaining_calories'] ?? '-'}'),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      const Text('Today meals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      if (meals.isEmpty) const Text('No meals added today yet.'),
+                      ...meals.map(
+                        (meal) => ListTile(
+                          title: Text(meal.name),
+                          subtitle: Text('${meal.grams} g'),
+                          trailing: Text('${meal.calories} kcal'),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  const Text('Today meals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  ...meals.map(
-                    (meal) => ListTile(
-                      title: Text(meal.name),
-                      subtitle: Text('${meal.grams} g • ${meal.id.substring(0, 8)}'),
-                      trailing: Text('${meal.calories} kcal'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
     );
   }
 }

@@ -14,6 +14,7 @@ class _FoodsPageState extends State<FoodsPage> {
   final searchController = TextEditingController();
   List<FoodItem> foods = [];
   bool loading = false;
+  String? error;
 
   @override
   void initState() {
@@ -22,12 +23,17 @@ class _FoodsPageState extends State<FoodsPage> {
   }
 
   Future<void> loadFoods() async {
-    setState(() => loading = true);
+    setState(() {
+      loading = true;
+      error = null;
+    });
     try {
       final data = await apiClient.getFoods();
       setState(() {
         foods = data.map((e) => FoodItem.fromJson(e as Map<String, dynamic>)).toList();
       });
+    } catch (_) {
+      setState(() => error = 'Failed to load foods');
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -35,12 +41,17 @@ class _FoodsPageState extends State<FoodsPage> {
 
   Future<void> searchFoods() async {
     final query = searchController.text.trim();
-    setState(() => loading = true);
+    setState(() {
+      loading = true;
+      error = null;
+    });
     try {
       final data = query.isEmpty ? await apiClient.getFoods() : await apiClient.searchFoods(query);
       setState(() {
         foods = data.map((e) => FoodItem.fromJson(e as Map<String, dynamic>)).toList();
       });
+    } catch (_) {
+      setState(() => error = 'Search failed');
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -82,7 +93,7 @@ class _FoodsPageState extends State<FoodsPage> {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
-                await apiClient.createMealFromFood(
+                final result = await apiClient.createMealFromFood(
                   foodItemId: item.id,
                   grams: double.tryParse(gramsController.text) ?? 100,
                   mealType: mealType,
@@ -90,7 +101,7 @@ class _FoodsPageState extends State<FoodsPage> {
                 if (!mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${item.name} added')),
+                  SnackBar(content: Text(result['error'] == true ? 'Failed to add meal' : '${item.name} added')),
                 );
               },
               child: const Text('Save'),
@@ -129,20 +140,22 @@ class _FoodsPageState extends State<FoodsPage> {
           Expanded(
             child: loading
                 ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    itemCount: foods.length,
-                    itemBuilder: (context, index) {
-                      final item = foods[index];
-                      return ListTile(
-                        title: Text(item.name),
-                        subtitle: Text('${item.caloriesPer100g} kcal / 100g'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () => addMeal(item),
-                        ),
-                      );
-                    },
-                  ),
+                : error != null
+                    ? Center(child: Text(error!, style: const TextStyle(color: Colors.red)))
+                    : ListView.builder(
+                        itemCount: foods.length,
+                        itemBuilder: (context, index) {
+                          final item = foods[index];
+                          return ListTile(
+                            title: Text(item.name),
+                            subtitle: Text('${item.caloriesPer100g} kcal / 100g'),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () => addMeal(item),
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),
