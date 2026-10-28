@@ -1,4 +1,4 @@
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -107,6 +107,62 @@ def get_daily_summary(db: Session, user_id, daily_target=None):
     if daily_target is not None:
         summary["remaining_calories"] = round(daily_target - result[0], 2)
     return summary
+
+
+def get_weekly_stats(db: Session, user_id, daily_target=None):
+    today = date.today()
+    start_date = today - timedelta(days=6)
+    start = datetime.combine(start_date, time.min)
+    end = datetime.combine(today, time.max)
+
+    rows = (
+        db.query(MealLog)
+        .filter(MealLog.user_id == user_id)
+        .filter(MealLog.eaten_at >= start)
+        .filter(MealLog.eaten_at <= end)
+        .order_by(MealLog.eaten_at.asc())
+        .all()
+    )
+
+    daily_map = {}
+    for i in range(7):
+        day = start_date + timedelta(days=i)
+        daily_map[day.isoformat()] = {
+            "date": day.isoformat(),
+            "calories": 0.0,
+            "protein": 0.0,
+            "fat": 0.0,
+            "carbs": 0.0,
+            "target_calories": daily_target,
+        }
+
+    for row in rows:
+        key = row.eaten_at.date().isoformat()
+        if key in daily_map:
+            daily_map[key]["calories"] += row.calories
+            daily_map[key]["protein"] += row.protein
+            daily_map[key]["fat"] += row.fat
+            daily_map[key]["carbs"] += row.carbs
+
+    items = list(daily_map.values())
+    total_calories = sum(item["calories"] for item in items)
+    avg_calories = total_calories / 7
+
+    return {
+        "days": [
+            {
+                "date": item["date"],
+                "calories": round(item["calories"], 2),
+                "protein": round(item["protein"], 2),
+                "fat": round(item["fat"], 2),
+                "carbs": round(item["carbs"], 2),
+                "target_calories": item["target_calories"],
+            }
+            for item in items
+        ],
+        "total_calories": round(total_calories, 2),
+        "average_calories": round(avg_calories, 2),
+    }
 
 
 def update_meal(db: Session, meal_id: str, user_id, request: MealUpdateRequest):

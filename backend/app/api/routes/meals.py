@@ -25,6 +25,7 @@ from app.services.meal_service import (
     get_daily_summary,
     get_meal_history,
     get_todays_meals,
+    get_weekly_stats,
     update_meal,
 )
 
@@ -84,6 +85,12 @@ def meal_history(
 ):
     user = get_current_user(token, db)
     return get_meal_history(db, user.id, from_date, to_date)
+
+
+@router.get("/weekly-stats")
+def weekly_stats(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    user = get_current_user(token, db)
+    return get_weekly_stats(db, user.id, user.daily_calorie_target)
 
 
 @router.get("/daily-summary")

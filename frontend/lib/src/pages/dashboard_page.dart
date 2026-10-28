@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api_client.dart';
 import '../models/meal_log.dart';
+import '../models/weekly_day_stats.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -13,6 +14,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   Map<String, dynamic>? summary;
   List<MealLog> meals = [];
+  List<WeeklyDayStats> weeklyDays = [];
   bool loading = false;
   String? error;
 
@@ -34,9 +36,13 @@ class _DashboardPageState extends State<DashboardPage> {
         return;
       }
       final mealsData = await apiClient.getTodayMeals();
+      final weeklyData = await apiClient.getWeeklyStats();
       setState(() {
         summary = summaryData;
         meals = mealsData.map((e) => MealLog.fromJson(e as Map<String, dynamic>)).toList();
+        weeklyDays = ((weeklyData['days'] ?? []) as List)
+            .map((e) => WeeklyDayStats.fromJson(e as Map<String, dynamic>))
+            .toList();
       });
     } finally {
       if (mounted) setState(() => loading = false);
@@ -108,6 +114,43 @@ class _DashboardPageState extends State<DashboardPage> {
     await loadData();
   }
 
+  Widget buildWeeklyCards() {
+    if (weeklyDays.isEmpty) {
+      return const Text('No weekly stats yet.');
+    }
+    return SizedBox(
+      height: 130,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: weeklyDays.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final day = weeklyDays[index];
+          return SizedBox(
+            width: 140,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(day.date, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text('${day.calories.toStringAsFixed(0)} kcal'),
+                    Text('P ${day.protein.toStringAsFixed(0)}'),
+                    Text('F ${day.fat.toStringAsFixed(0)}'),
+                    Text('C ${day.carbs.toStringAsFixed(0)}'),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -162,6 +205,10 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      const Text('Last 7 days', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      buildWeeklyCards(),
                       const SizedBox(height: 16),
                       const Text('Today meals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),

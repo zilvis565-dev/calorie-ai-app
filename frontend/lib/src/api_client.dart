@@ -113,6 +113,14 @@ class ApiClient {
     return _handleJsonResponse(response);
   }
 
+  Future<Map<String, dynamic>> getWeeklyStats() async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/api/meals/weekly-stats'),
+      headers: headers,
+    );
+    return _handleJsonResponse(response);
+  }
+
   Future<List<dynamic>> getTodayMeals() async {
     final response = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/api/meals/today'),
