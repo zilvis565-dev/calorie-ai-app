@@ -17,6 +17,20 @@ def rule_based_parse(text: str):
         (r"(\d+)\s*g\s*chicken", "Chicken breast", 1, 3),
         (r"(\d+)\s*g\s*cheese", "Cheese", 1, 5),
         (r"(\d+)\s*g\s*cottage cheese", "Cottage cheese", 1, 8),
+        (r"(\d+)\s*g\s*greek yogurt", "Greek yogurt", 1, 9),
+        (r"(\d+)\s*g\s*blueberries", "Blueberries", 1, 10),
+        (r"(\d+)\s*g\s*peanut butter", "Peanut butter", 1, 11),
+        (r"(\d+)\s*g\s*oats", "Oats", 1, 12),
+        (r"(\d+)\s*g\s*milk", "Milk", 1, 13),
+        (r"(\d+)\s*g\s*skyr", "Skyr", 1, 14),
+        (r"(\d+)\s*g\s*liesa varske", "Cottage cheese", 1, 8),
+        (r"(\d+)\s*g\s*varske", "Cottage cheese", 1, 8),
+        (r"(\d+)\s*g\s*graikiskas jogurtas", "Greek yogurt", 1, 9),
+        (r"(\d+)\s*g\s*melynes", "Blueberries", 1, 10),
+        (r"(\d+)\s*g\s*silauoges", "Blueberries", 1, 10),
+        (r"(\d+)\s*g\s*riesutu sviestas", "Peanut butter", 1, 11),
+        (r"(\d+)\s*g\s*avizos", "Oats", 1, 12),
+        (r"(\d+)\s*g\s*pienas", "Milk", 1, 13),
     ]
 
     for pattern, name, gram_factor, food_id in patterns:
@@ -37,6 +51,20 @@ def rule_based_parse(text: str):
         ("chicken", "Chicken breast", 150, 3),
         ("cheese", "Cheese", 30, 5),
         ("cottage cheese", "Cottage cheese", 150, 8),
+        ("greek yogurt", "Greek yogurt", 150, 9),
+        ("blueberries", "Blueberries", 80, 10),
+        ("peanut butter", "Peanut butter", 20, 11),
+        ("oats", "Oats", 50, 12),
+        ("milk", "Milk", 200, 13),
+        ("skyr", "Skyr", 150, 14),
+        ("liesa varske", "Cottage cheese", 150, 8),
+        ("varske", "Cottage cheese", 150, 8),
+        ("graikiskas jogurtas", "Greek yogurt", 150, 9),
+        ("melynes", "Blueberries", 80, 10),
+        ("silauoges", "Blueberries", 80, 10),
+        ("riesutu sviestas", "Peanut butter", 20, 11),
+        ("avizos", "Oats", 50, 12),
+        ("pienas", "Milk", 200, 13),
     ]
 
     for keyword, name, grams, food_id in fallback:

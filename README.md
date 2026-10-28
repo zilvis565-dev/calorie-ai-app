@@ -15,6 +15,7 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, F
 - Weekly stats for last 7 days
 - Daily summary with remaining calories
 - Rule-based AI parser with better multi-item phrase matching
+- Lithuanian breakfast-friendly food keywords like `liesa varske`, `graikiskas jogurtas`, `silauoges`, `riesutu sviestas`, `avizos`
 - LLM integration scaffold with provider config
 - Alembic migration setup
 - Safer auth validation for password length handling
@@ -22,18 +23,3 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, F
 - Swagger OAuth2 authorize flow aligned with login endpoint
 - Fixed meal response schema UUID typing
 - Simple mobile-friendly web UI available at `/web`
-
-## Web UI
-
-Use the app at:
-
-- `/web`
-
-Features:
-
-- Login
-- Home summary with progress bar
-- Quick meal add with big buttons
-- History screen
-- Profile screen
-- Bottom navigation optimized for phone use
