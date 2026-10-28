@@ -11,6 +11,7 @@ from app.schemas.meal import (
     MealCreateRequest,
     MealLogResponse,
     MealParseRequest,
+    MealUpdateRequest,
 )
 from app.services.ai_service import parse_meal_text
 from app.services.auth_service import get_user_by_email
@@ -18,8 +19,10 @@ from app.services.calorie_service import calculate_meal_totals
 from app.services.meal_service import (
     create_meal_from_food,
     create_meal_log,
+    delete_meal,
     get_daily_summary,
     get_todays_meals,
+    update_meal,
 )
 
 router = APIRouter()
@@ -73,3 +76,15 @@ def today_meals(token: str = Depends(oauth2_scheme), db: Session = Depends(get_d
 def daily_summary(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     user = get_current_user(token, db)
     return get_daily_summary(db, user.id, user.daily_calorie_target)
+
+
+@router.put("/{meal_id}", response_model=MealLogResponse)
+def edit_meal(meal_id: str, request: MealUpdateRequest, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    user = get_current_user(token, db)
+    return update_meal(db, meal_id, user.id, request)
+
+
+@router.delete("/{meal_id}")
+def remove_meal(meal_id: str, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    user = get_current_user(token, db)
+    return delete_meal(db, meal_id, user.id)

@@ -5,15 +5,9 @@ from app.api.routes.foods import router as foods_router
 from app.api.routes.health import router as health_router
 from app.api.routes.meals import router as meals_router
 from app.api.routes.users import router as users_router
-from app.db.base import Base
 from app.db.seed import seed_food_items
-from app.db.session import SessionLocal, engine
+from app.db.session import SessionLocal
 from app.core.config import settings
-from app.models.food_item import FoodItem
-from app.models.meal_log import MealLog
-from app.models.user import User
-
-Base.metadata.create_all(bind=engine)
 
 with SessionLocal() as db:
     seed_food_items(db)

@@ -138,6 +138,27 @@ class ApiClient {
     return _handleJsonResponse(response);
   }
 
+  Future<Map<String, dynamic>> updateMeal({
+    required String mealId,
+    required double grams,
+    String? mealType,
+  }) async {
+    final response = await http.put(
+      Uri.parse('${ApiConfig.baseUrl}/api/meals/$mealId'),
+      headers: headers,
+      body: jsonEncode({'grams': grams, 'meal_type': mealType}),
+    );
+    return _handleJsonResponse(response);
+  }
+
+  Future<Map<String, dynamic>> deleteMeal(String mealId) async {
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}/api/meals/$mealId'),
+      headers: headers,
+    );
+    return _handleJsonResponse(response);
+  }
+
   Future<Map<String, dynamic>> parseMealText(String text) async {
     final response = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/api/meals/parse'),

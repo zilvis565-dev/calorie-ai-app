@@ -1,6 +1,6 @@
 # Calorie AI App
 
-This repository now contains a fuller MVP starter for an AI-assisted calorie tracker with FastAPI backend, PostgreSQL database, and Flutter frontend.【cite§source0.0】
+AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, and Flutter frontend.
 
 ## Included backend features
 
@@ -8,8 +8,10 @@ This repository now contains a fuller MVP starter for an AI-assisted calorie tra
 - User profile endpoints
 - Food list and food search
 - Meal creation from food item
+- Meal update and delete
 - Daily summary with remaining calories
 - Rule-based AI placeholder meal parser
+- Alembic migration setup
 
 ## Included frontend features
 
@@ -27,9 +29,24 @@ This repository now contains a fuller MVP starter for an AI-assisted calorie tra
 - `frontend/ios/Runner/Info.plist` allows HTTP local development traffic
 - For physical iPhone testing, replace `127.0.0.1` with your Mac LAN IP
 
+## Backend development
+
+### Start services
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+### Run migrations
+
+```bash
+cd backend
+alembic upgrade head
+```
+
 ## Recommended next future step
 
 - Replace rule-based parser with real LLM integration
-- Add Alembic migrations
 - Add secure token refresh flow
 - Add native barcode scanner or photo meal detection

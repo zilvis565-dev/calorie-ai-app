@@ -1,4 +1,5 @@
 from datetime import date, datetime, time
+from uuid import UUID
 
 from fastapi import HTTPException
 from sqlalchemy import func
@@ -6,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.models.food_item import FoodItem
 from app.models.meal_log import MealLog
-from app.schemas.meal import MealCreateFromFoodRequest, MealCreateRequest
+from app.schemas.meal import MealCreateFromFoodRequest, MealCreateRequest, MealUpdateRequest
 
 
 def create_meal_log(db: Session, user_id, request: MealCreateRequest):
@@ -95,5 +96,33 @@ def get_daily_summary(db: Session, user_id, daily_target=None):
     return summary
 
 
-def get_meal_type_options():
-    return ["breakfast", "lunch", "dinner", "snack"]
+def update_meal(db: Session, meal_id: str, user_id, request: MealUpdateRequest):
+    meal = db.query(MealLog).filter(MealLog.id == UUID(meal_id), MealLog.user_id == user_id).first()
+    if not meal:
+        raise HTTPException(status_code=404, detail="Meal not found")
+
+    meal.grams = request.grams
+    if request.meal_type is not None:
+        meal.meal_type = request.meal_type
+
+    if meal.food_item_id:
+        food = db.query(FoodItem).filter(FoodItem.id == meal.food_item_id).first()
+        if food:
+            meal.calories = round((food.calories_per_100g * meal.grams) / 100, 2)
+            meal.protein = round((food.protein_per_100g * meal.grams) / 100, 2)
+            meal.fat = round((food.fat_per_100g * meal.grams) / 100, 2)
+            meal.carbs = round((food.carbs_per_100g * meal.grams) / 100, 2)
+
+    db.add(meal)
+    db.commit()
+    db.refresh(meal)
+    return meal
+
+
+def delete_meal(db: Session, meal_id: str, user_id):
+    meal = db.query(MealLog).filter(MealLog.id == UUID(meal_id), MealLog.user_id == user_id).first()
+    if not meal:
+        raise HTTPException(status_code=404, detail="Meal not found")
+    db.delete(meal)
+    db.commit()
+    return {"success": True}

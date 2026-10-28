@@ -43,6 +43,71 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  Future<void> editMeal(MealLog meal) async {
+    final gramsController = TextEditingController(text: meal.grams.toStringAsFixed(0));
+    String mealType = meal.mealType ?? 'snack';
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Edit ${meal.name}'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: gramsController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Grams'),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: mealType,
+                items: const [
+                  DropdownMenuItem(value: 'breakfast', child: Text('Breakfast')),
+                  DropdownMenuItem(value: 'lunch', child: Text('Lunch')),
+                  DropdownMenuItem(value: 'dinner', child: Text('Dinner')),
+                  DropdownMenuItem(value: 'snack', child: Text('Snack')),
+                ],
+                onChanged: (value) {
+                  if (value != null) setDialogState(() => mealType = value);
+                },
+                decoration: const InputDecoration(labelText: 'Meal type'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () async {
+                final result = await apiClient.updateMeal(
+                  mealId: meal.id,
+                  grams: double.tryParse(gramsController.text) ?? meal.grams,
+                  mealType: mealType,
+                );
+                if (!mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(result['error'] == true ? 'Failed to update meal' : 'Meal updated')),
+                );
+                await loadData();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> deleteMeal(MealLog meal) async {
+    final result = await apiClient.deleteMeal(meal.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result['error'] == true ? 'Failed to delete meal' : 'Meal deleted')),
+    );
+    await loadData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,10 +161,24 @@ class _DashboardPageState extends State<DashboardPage> {
                       const SizedBox(height: 8),
                       if (meals.isEmpty) const Text('No meals added today yet.'),
                       ...meals.map(
-                        (meal) => ListTile(
-                          title: Text(meal.name),
-                          subtitle: Text('${meal.grams} g'),
-                          trailing: Text('${meal.calories} kcal'),
+                        (meal) => Card(
+                          child: ListTile(
+                            title: Text(meal.name),
+                            subtitle: Text('${meal.grams} g • ${meal.mealType ?? 'snack'}'),
+                            trailing: PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  editMeal(meal);
+                                } else if (value == 'delete') {
+                                  deleteMeal(meal);
+                                }
+                              },
+                              itemBuilder: (context) => const [
+                                PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                PopupMenuItem(value: 'delete', child: Text('Delete')),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ],
