@@ -17,3 +17,4 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, a
 - Alembic migration setup
 - Safer auth validation for password length handling
 - Switched auth hashing to `pbkdf2_sha256` for more stable local compatibility
+- Swagger OAuth2 authorize flow aligned with login endpoint

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.db.session import get_db
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
+from app.schemas.auth import RegisterRequest, TokenResponse
 from app.schemas.user import UserResponse
 from app.services.auth_service import authenticate_user, create_user, get_user_by_email
 
@@ -26,9 +26,11 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(request: LoginRequest, db: Session = Depends(get_db)):
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    email = form_data.username
+    password = form_data.password
     try:
-        token = authenticate_user(db, request.email, request.password)
+        token = authenticate_user(db, email, password)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     if not token:
