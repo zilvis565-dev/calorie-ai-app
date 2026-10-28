@@ -9,6 +9,7 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, a
 - Food list and food search
 - Meal creation from food item
 - Meal update and delete
+- Meal history by date range
 - Daily summary with remaining calories
 - Rule-based AI placeholder meal parser
 - Alembic migration setup
@@ -21,6 +22,7 @@ AI-assisted calorie tracker starter with FastAPI backend, PostgreSQL database, a
 - Food search and add flow
 - Profile update and logout
 - AI text meal parsing flow with edit before save
+- Meal history screen
 - Loading and basic error states
 
 ## iOS support
@@ -38,12 +40,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-### Run migrations
-
-```bash
-cd backend
-alembic upgrade head
-```
+The API container now runs `alembic upgrade head` before starting FastAPI.
 
 ## Recommended next future step
 

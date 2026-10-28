@@ -116,6 +116,12 @@ class _DashboardPageState extends State<DashboardPage> {
         actions: [
           IconButton(
             onPressed: () async {
+              await Navigator.pushNamed(context, '/history');
+            },
+            icon: const Icon(Icons.history),
+          ),
+          IconButton(
+            onPressed: () async {
               await Navigator.pushNamed(context, '/parse-meal');
               await loadData();
             },

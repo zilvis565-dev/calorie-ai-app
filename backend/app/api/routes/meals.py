@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import date
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
@@ -21,6 +23,7 @@ from app.services.meal_service import (
     create_meal_log,
     delete_meal,
     get_daily_summary,
+    get_meal_history,
     get_todays_meals,
     update_meal,
 )
@@ -70,6 +73,17 @@ def create_meal_by_food(request: MealCreateFromFoodRequest, token: str = Depends
 def today_meals(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     user = get_current_user(token, db)
     return get_todays_meals(db, user.id)
+
+
+@router.get("/history", response_model=list[MealLogResponse])
+def meal_history(
+    from_date: date = Query(..., alias='from'),
+    to_date: date = Query(..., alias='to'),
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+):
+    user = get_current_user(token, db)
+    return get_meal_history(db, user.id, from_date, to_date)
 
 
 @router.get("/daily-summary")

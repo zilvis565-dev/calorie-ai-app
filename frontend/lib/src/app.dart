@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'pages/dashboard_page.dart';
 import 'pages/foods_page.dart';
+import 'pages/history_page.dart';
 import 'pages/login_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/register_page.dart';
@@ -26,6 +27,7 @@ class CalorieAiApp extends StatelessWidget {
         '/register': (_) => const RegisterPage(),
         '/dashboard': (_) => const DashboardPage(),
         '/foods': (_) => const FoodsPage(),
+        '/history': (_) => const HistoryPage(),
         '/profile': (_) => const ProfilePage(),
         '/parse-meal': (_) => const ParseMealPage(),
       },

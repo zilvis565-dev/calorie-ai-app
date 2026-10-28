@@ -121,6 +121,14 @@ class ApiClient {
     return _handleJsonListResponse(response);
   }
 
+  Future<List<dynamic>> getMealHistory(String fromDate, String toDate) async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/api/meals/history?from=$fromDate&to=$toDate'),
+      headers: headers,
+    );
+    return _handleJsonListResponse(response);
+  }
+
   Future<Map<String, dynamic>> createMealFromFood({
     required int foodItemId,
     required double grams,

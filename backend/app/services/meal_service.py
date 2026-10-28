@@ -67,6 +67,19 @@ def get_todays_meals(db: Session, user_id):
     )
 
 
+def get_meal_history(db: Session, user_id, from_date: date, to_date: date):
+    start = datetime.combine(from_date, time.min)
+    end = datetime.combine(to_date, time.max)
+    return (
+        db.query(MealLog)
+        .filter(MealLog.user_id == user_id)
+        .filter(MealLog.eaten_at >= start)
+        .filter(MealLog.eaten_at <= end)
+        .order_by(MealLog.eaten_at.desc())
+        .all()
+    )
+
+
 def get_daily_summary(db: Session, user_id, daily_target=None):
     today = date.today()
     start = datetime.combine(today, time.min)
